@@ -1,0 +1,34 @@
+// @import 'src/styles/_index';
+
+ .tab-navigator-rct-component {
+   display: flex;
+   height: 100%;
+   flex-direction: column;
+
+   .tabs-container {
+     display: flex;
+     flex-direction: row;
+     width: 100%;
+     background-color: #555;
+     padding: 1em 1em 0 1em;
+
+      .tab {
+        height: 3em;
+        width: 8em;
+        background-color: #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        margin-left: 1em;
+        padding: 4px;
+      }
+
+   }
+
+   .routes-container {
+     display: flex;
+     flex: 1;
+     background-color: #555;
+   }
+ }

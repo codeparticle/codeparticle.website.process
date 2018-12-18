@@ -1,0 +1,15 @@
+@import 'src/styles/_index';
+
+.form-message-rct-component {
+  min-height: 14px;
+  font-size: 10px;
+  color: $primary;
+  z-index: 20;
+  text-align: center;
+  margin-top: 4px;
+  width: 95%;
+  overflow-wrap: break-word;
+  &.error {
+   color: $error-red;
+  }
+}

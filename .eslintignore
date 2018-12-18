@@ -1,0 +1,7 @@
+node_modules/*
+dist/
+
+src/lib/registerServiceWorker.js
+
+# node modules pulled into project
+src/lib/modules/**

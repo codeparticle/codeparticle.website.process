@@ -1,0 +1,50 @@
+import React from 'react';
+{{#if takesClassNameAsProp}}
+import PropTypes from 'prop-types';
+// import customPropTypes from 'lib/customPropTypes';
+import classNames from 'classnames';
+{{else}}
+// import PropTypes from 'prop-types';
+// import customPropTypes from 'lib/customPropTypes';
+// import classNames from 'classnames';
+{{/if}}
+
+import './index.css';
+
+const {{ pascalCase name }} = (props) => {
+  {{#if takesClassNameAsProp}}
+  const { className } = props;
+  {{/if}}
+  return (
+  {{#if takesClassNameAsProp}}
+    <div
+      className={classNames(
+        '{{ kebabCase name }}-rct-component',
+        className,
+      )}
+    >
+  {{else}}
+    <div className="{{ kebabCase name }}-rct-component">
+  {{/if}}
+    </div>
+  );
+}
+
+// const {{ pascalCase name }} = (props) => (
+//   <div className="{{ kebabCase name }}-rct-component" />
+// );
+
+
+{{ pascalCase name }}.propTypes = {
+  {{#if takesClassNameAsProp}}
+  className: PropTypes.string,
+  {{/if}}
+};
+
+{{ pascalCase name }}.defaultProps = {
+  {{#if takesClassNameAsProp}}
+  className: '',
+  {{/if}}
+};
+
+export default {{ pascalCase name }};

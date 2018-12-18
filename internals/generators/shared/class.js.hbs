@@ -1,0 +1,59 @@
+import React from 'react';
+{{#if takesClassNameAsProp}}
+import PropTypes from 'prop-types';
+// import customPropTypes from 'lib/customPropTypes';
+import classNames from 'classnames';
+{{else}}
+// import PropTypes from 'prop-types';
+// import customPropTypes from 'lib/customPropTypes';
+// import classNames from 'classnames';
+{{/if}}
+{{#if reduxConnected}}
+import { connect } from 'react-redux';
+import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/propsMapping';
+{{/if}}
+
+import './index.css';
+
+class {{ pascalCase name }} extends React.Component {
+  render() {
+    {{#if takesClassNameAsProp}}
+    const { className } = this.props;
+    {{/if}}
+    return (
+    {{#if takesClassNameAsProp}}
+      <div className={classNames(
+        "{{ kebabCase name }}-rct-component",
+        className,
+      )}>
+    {{else}}
+      <div className="{{ kebabCase name }}-rct-component">
+    {{/if}}
+      </div>
+    );
+  }
+}
+
+{{ pascalCase name }}.propTypes = {
+  {{#if takesClassNameAsProp}}
+  className: PropTypes.string,
+  {{/if}}
+};
+
+{{ pascalCase name }}.defaultProps = {
+  {{#if takesClassNameAsProp}}
+  className: '',
+  {{/if}}
+};
+
+{{#if reduxConnected}}
+const actionsMapper = getRdxActionMapper([
+]);
+
+const stateMapper = getRdxSelectionMapper({
+});
+
+export default connect(stateMapper, actionsMapper)({{ pascalCase name }});
+{{else}}
+export default {{ pascalCase name }};
+{{/if}}

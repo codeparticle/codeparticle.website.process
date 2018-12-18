@@ -1,0 +1,12 @@
+@import 'src/styles/_index';
+
+.form-connect-rct-component {
+  display: flex;
+  flex-direction: column;
+  .input-error {
+    border-bottom: 2px solid $error-red;
+  }
+  .input-changed {
+    border-bottom: 2px solid $primary;
+  }
+}
