@@ -1,5 +1,5 @@
 import types from 'rdx/modules/auth/types';
-import createAction from 'rdx/utils/createAction';
+import createAction from 'rdx/utils/create-action';
 
 export default {
   setAuthToken: authToken => createAction(types.SET_AUTH_TOKEN, authToken),

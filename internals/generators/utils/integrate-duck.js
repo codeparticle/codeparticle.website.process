@@ -1,5 +1,5 @@
 const fs = require('fs');
-const toCamelCase = require('./toCamelCase');
+const toCamelCase = require('./to-camel-case');
 
 // fileType should be actions | reducers | selectors | types and should be a file name in src/rdx
 const integrateDuck = (duckName, fileType) => {
@@ -18,11 +18,12 @@ const integrateDuck = (duckName, fileType) => {
     case 'types':
       varName += 'Types';
       break;
-    case 'sagas': {
-      const firstLetter = varName.charAt(0).toUpperCase();
-      const pascalVarName = (firstLetter + varName.slice(1));
-      varName = `watch${pascalVarName}Sagas`;
-    }
+    case 'sagas':
+      {
+        const firstLetter = varName.charAt(0).toUpperCase();
+        const pascalVarName = (firstLetter + varName.slice(1));
+        varName = `watch${pascalVarName}Sagas`;
+      }
       break;
     default:
       console.warn(`Bad fileType ${fileType} for duck module integration`);
@@ -38,9 +39,9 @@ const integrateDuck = (duckName, fileType) => {
     return;
   }
   const newImportLine = `import ${varName} from 'rdx/modules/${camelDuck}/${fileType}';\n`
-  const newInsertionLine = fileType === 'sagas'
-    ? `${varName}(),\n    `
-    : `  ...${varName},\n`
+  const newInsertionLine = fileType === 'sagas' ?
+    `${varName}(),\n    ` :
+    `  ...${varName},\n`
   const newFile = file.slice(0, importationIndex)
     .concat(newImportLine)
     .concat(file.slice(importationIndex, insertionIndex))

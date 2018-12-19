@@ -1,12 +1,10 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-
-import FormMessage from 'components/FormMessage';
+import FormMessage from 'components/form-message';
 import uuidv1 from 'uuid/v1';
-import stripObjectProps from 'lib/utils/stripObjectProps';
-
-import './index.css';
+import stripObjectProps from 'lib/utils/strip-object-props';
+import './index.scss';
 
 /*
   for an input to be connected via this HOC
@@ -16,8 +14,8 @@ import './index.css';
     spec mandates child to argue ({ value, error })
 */
 
-const formConnect = (InputComponent) => {
-  class FormInput extends React.Component {
+const FormConnect = (InputComponent) => {
+  class FormInput extends Component {
     constructor(props) {
       super(props);
       const value = props.initValue || '';
@@ -162,4 +160,4 @@ const formConnect = (InputComponent) => {
 };
 
 
-export default formConnect;
+export default FormConnect;

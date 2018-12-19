@@ -1,16 +1,14 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { Switch, Route } from 'react-router';
-
-import Main from 'containers/Main';
-import Auth from 'containers/Auth';
-import FlashMessages from 'containers/FlashMessages';
-import AuthGuard from 'components/AuthGuard';
-import NotFound from 'components/NotFound';
-
-import './index.css';
+import Main from 'containers/main';
+import Auth from 'containers/auth';
+import FlashMessages from 'containers/flash-messages';
+import AuthGuard from 'components/auth-guard';
+import NotFound from 'components/not-found';
+import './index.scss';
 
 const RootRouter = () => (
-  <React.Fragment>
+  <Fragment>
     <Switch>
       <Route exact path="/login" component={Auth} />
       <AuthGuard>
@@ -19,7 +17,7 @@ const RootRouter = () => (
       <Route component={NotFound} />
     </Switch>
     <FlashMessages />
-  </React.Fragment>
+  </Fragment>
 );
 
 RootRouter.propTypes = {

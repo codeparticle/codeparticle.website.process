@@ -1,5 +1,5 @@
-import createReducer from 'rdx/utils/createReducer';
-import types from 'rdx/modules/activeRequests/types';
+import createReducer from 'rdx/utils/create-reducer';
+import types from 'rdx/modules/active-requests/types';
 
 export default {
   activeRequests: createReducer([], {

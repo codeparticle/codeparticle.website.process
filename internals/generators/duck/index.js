@@ -6,8 +6,8 @@
 
 'use strict';
 
-const duckExists = require('../utils/duckExists');
-const integrateDuck = require('../utils/integrateDuck');
+const duckExists = require('../utils/duck-exists');
+const integrateDuck = require('../utils/integrate-duck');
 
 module.exports = {
   description: 'Add a redux module',

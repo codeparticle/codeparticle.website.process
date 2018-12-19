@@ -1,7 +1,6 @@
 import { push } from 'connected-react-router';
 // import types from 'rdx/modules/router/types';
 // import createAction from 'rdx/utils/createAction';
-
 import queryString from 'lib/modules/query-string';
 
 export default {

@@ -1,15 +1,13 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-
 import uuidv1 from 'uuid/v1';
-import parseFloatString from 'lib/utils/parseFloatString';
-import isValidEmail from 'lib/utils/isValidEmail';
-import formConnect from 'hocs/formConnect';
+import parseFloatString from 'lib/utils/parse-float-string';
+import isValidEmail from 'lib/utils/is-valid-email';
+import FormConnect from 'hocs/form-connect';
+import './index.scss';
 
-import './index.css';
-
-class TextInput extends React.Component {
+class TextInput extends Component {
   constructor(props) {
     super(props);
     this.config = TextInput.getConfig(props.type);
@@ -188,6 +186,6 @@ TextInput.defaultProps = {
   labelClassName: '',
 };
 
-export const FormTextInput = formConnect(TextInput);
+export const FormTextInput = FormConnect(TextInput);
 
 export default TextInput;

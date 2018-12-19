@@ -5,7 +5,6 @@ import storage from 'redux-persist/lib/storage'; // localStorage
 import createSagaMiddleware from 'redux-saga';
 import { createLogger } from 'redux-logger';
 import { connectRouter, routerMiddleware } from 'connected-react-router';
-
 import compileReducers from 'rdx/reducers';
 import rootSaga from 'rdx/sagas';
 

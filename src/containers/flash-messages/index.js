@@ -1,14 +1,13 @@
-import React from 'react';
+import React, { Component } from 'react';
 // import PropTypes from 'prop-types';
-import customPropTypes from 'lib/customPropTypes';
+import customPropTypes from 'lib/custom-prop-types';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
-import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/propsMapping';
+import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/props-mapping';
 import { messageTypes } from 'rdx/modules/messages/constants';
+import './index.scss';
 
-import './index.css';
-
-class FlashMessages extends React.Component {
+class FlashMessages extends Component {
   hoverActive = false;
 
   state = {

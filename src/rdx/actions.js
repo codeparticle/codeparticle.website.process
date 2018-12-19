@@ -1,4 +1,4 @@
-import activeRequestsActions from 'rdx/modules/activeRequests/actions';
+import activeRequestsActions from 'rdx/modules/active-requests/actions';
 import appActions from 'rdx/modules/app/actions';
 import routerActions from 'rdx/modules/router/actions';
 import authActions from 'rdx/modules/auth/actions';

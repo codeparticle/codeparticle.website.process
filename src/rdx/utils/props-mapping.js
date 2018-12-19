@@ -1,5 +1,4 @@
 import { bindActionCreators } from 'redux';
-
 import actions from 'rdx/actions';
 import selectors from 'rdx/selectors';
 

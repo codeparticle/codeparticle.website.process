@@ -1,16 +1,14 @@
-import React from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import customPropTypes from 'lib/customPropTypes';
+import customPropTypes from 'lib/custom-prop-types';
 import { connect } from 'react-redux';
-import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/propsMapping';
+import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/props-mapping';
+import Form from 'components/form';
+import { FormTextInput } from 'components/text-input';
+import FormButton from 'components/form-button';
+import './index.scss';
 
-import Form from 'components/Form';
-import { FormTextInput } from 'components/TextInput';
-import FormButton from 'components/FormButton';
-
-import './index.css';
-
-class Auth extends React.PureComponent {
+class Auth extends PureComponent {
   render() {
     const { requestLogin, loginMessage } = this.props;
     return (

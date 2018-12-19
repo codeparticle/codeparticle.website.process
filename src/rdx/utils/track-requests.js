@@ -1,5 +1,5 @@
 import { put } from 'redux-saga/effects';
-import arActions from 'rdx/modules/activeRequests/actions';
+import arActions from 'rdx/modules/active-requests/actions';
 import appActions from 'rdx/modules/app/actions';
 
 export const composeRequestTracker = saga => function* trackRequests(action) {

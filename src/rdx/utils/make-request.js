@@ -1,6 +1,5 @@
 import { all, call, select } from 'redux-saga/effects';
-import Api from 'rdx/utils/Api';
-
+import Api from 'rdx/utils/api';
 import authSelectors from 'rdx/modules/auth/selectors';
 
 const API_ENDPOINT = process.env.REACT_APP_API_ENDPOINT;

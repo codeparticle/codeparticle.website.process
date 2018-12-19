@@ -1,14 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import customPropTypes from 'lib/customPropTypes';
+import customPropTypes from 'lib/custom-prop-types';
 import { connect } from 'react-redux';
-import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/propsMapping';
+import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/props-mapping';
 import uuidv1 from 'uuid/v1';
-
-import { activeRequestExists } from 'rdx/modules/activeRequests/selectors';
-import { areDataPtsValid, getComponentStateMappers } from 'hocs/utils/resolverData';
-
-import './index.css';
+import { activeRequestExists } from 'rdx/modules/active-requests/selectors';
+import { areDataPtsValid, getComponentStateMappers } from 'hocs/utils/resolver-data';
+import './index.scss';
 
 class Resolver extends React.Component {
   constructor(props) {

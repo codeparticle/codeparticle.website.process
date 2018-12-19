@@ -1,16 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
 import { PersistGate } from 'redux-persist/integration/react';
 import createHistory from 'history/createBrowserHistory';
-
-import RootRouter from 'containers/RootRouter';
-import configureStore from 'rdx/configureStore';
-import registerServiceWorker from 'lib/registerServiceWorker';
-
-import './index.css';
+import RootRouter from 'containers/root-router';
+import configureStore from 'rdx/configure-store';
+import registerServiceWorker from 'lib/register-service-worker';
+import './index.scss';
 
 const history = createHistory();
 
