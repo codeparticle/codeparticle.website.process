@@ -22,7 +22,6 @@ function registerValidSW(swUrl) {
   navigator.serviceWorker
     .register(swUrl)
     .then((registration) => {
-      // eslint-disable-next-line
       registration.onupdatefound = () => {
         const installingWorker = registration.installing;
         installingWorker.onstatechange = () => {
@@ -32,19 +31,19 @@ function registerValidSW(swUrl) {
               // the fresh content will have been added to the cache.
               // It's the perfect time to display a "New content is
               // available; please refresh." message in your web app.
-              console.log('New content is available; please refresh.'); //eslint-disable-line
+              console.log('New content is available; please refresh.');
             } else {
               // At this point, everything has been precached.
               // It's the perfect time to display a
               // "Content is cached for offline use." message.
-              console.log('Content is cached for offline use.'); //eslint-disable-line
+              console.log('Content is cached for offline use.');
             }
           }
         };
       };
     })
     .catch((error) => {
-      console.error('Error during service worker registration:', error); //eslint-disable-line
+      console.error('Error during service worker registration:', error);
     });
 }
 
@@ -69,7 +68,7 @@ function checkValidServiceWorker(swUrl) {
       }
     })
     .catch(() => {
-      console.log('No internet connection found. App is running in offline mode.'); //eslint-disable-line
+      console.log('No internet connection found. App is running in offline mode.');
     });
 }
 
@@ -94,7 +93,7 @@ export default function register() {
         // Add some additional logging to localhost, pointing developers to the
         // service worker/PWA documentation.
         navigator.serviceWorker.ready.then(() => {
-          console.log(         //eslint-disable-line
+          console.log(
             'This web app is being served cache-first by a service '
               + 'worker. To learn more, visit https://goo.gl/SC7cgQ',
           );
