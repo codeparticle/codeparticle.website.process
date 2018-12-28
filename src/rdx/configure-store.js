@@ -15,7 +15,7 @@ const loggerMiddleware = createLogger();
 const sagaMiddleware = createSagaMiddleware();
 
 const persistConfig = {
-  // key: 'react_template',
+  key: 'root',
   storage,
   whitelist: [
     'authToken',

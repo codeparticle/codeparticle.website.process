@@ -21,8 +21,9 @@
         "alias": {
           "lib": "./src/lib",
           "rdx": "./src/rdx",
+          "hocs": "./src/hocs",
           "containers": "./src/containers",
-          "components": "./src/component",
+          "components": "./src/components",
         }
       }
     ]

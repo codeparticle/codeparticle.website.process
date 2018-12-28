@@ -1,5 +1,5 @@
 {
-  "extends": "airbnb",
+  "extends": "eslint-config-airbnb",
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module",
@@ -40,6 +40,10 @@
     "react/jsx-filename-extension": 0,
     "react/prop-types": 0,
     "react/destructuring-assignment": [0, "always", { "ignoreClassFields": true }],
+    "react/jsx-wrap-multilines": ["error", {
+      "default": "parens-new-line",
+      "arrow": "parens"
+  }],
     "space-before-blocks": "error",
     "semi": ["error", "always"],
     "valid-jsdoc": ["error", {
