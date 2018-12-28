@@ -1,7 +1,18 @@
 {
   "name": "react-web-template",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
+  "author": {
+    "name": "codeparticle",
+    "email": "web-accounts@codeparticle.com"
+  },
+  "description": "A React Starter App bundle with generic built that react projects can extend from.",
+  "contributors": [
+    {
+      "name": "William Chen",
+      "email": "william@codeparticle.com"
+    }
+  ],
   "dependencies": {
     "autoprefixer": "7.1.6",
     "babel-core": "6.26.0",
@@ -49,6 +60,7 @@
     "react": "^16.4.1",
     "react-dev-utils": "^5.0.1",
     "react-dom": "^16.4.1",
+    "react-hot-loader": "^3.1.3",
     "react-intl": "^2.4.0",
     "react-redux": "^5.0.7",
     "react-router": "^4.3.1",

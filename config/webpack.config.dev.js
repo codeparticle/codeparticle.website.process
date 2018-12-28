@@ -53,6 +53,7 @@ const devConfig =  {
     // We include the app code last so that if there is a runtime error during
     // initialization, it doesn't blow up the WebpackDevServer client, and
     // changing JS code would still trigger a refresh.
+    'webpack/hot/only-dev-server',
   ],
   output: {
     // Add /* filename */ comments to generated require()s in the output.
@@ -95,17 +96,15 @@ const devConfig =  {
       },
       // Process JS with Babel.
       {
-        test: /\.(js|jsx|mjs)$/,
-        include: paths.appSrc,
-        loader: require.resolve('babel-loader'),
-        options: {
-          
-          // This is a feature of `babel-loader` for webpack (not Babel itself).
-          // It enables caching results in ./node_modules/.cache/babel-loader/
-          // directory for faster rebuilds.
-          cacheDirectory: true,
-        },
+        test: /\.jsx?$/,
+        exclude: /node_modules\/(?!(fs-extra|rss-parser|universalify|proxy-polyfill)\/).*/,
+        use: [
+          'react-hot-loader/webpack',
+          'babel-loader',
+        ],
       },
+      // ** STOP ** Are you adding a new loader?
+      // Make sure to add the new loader(s) before the "file" loader.
     ],
   },
   plugins: [
@@ -151,6 +150,9 @@ const devConfig =  {
     net: 'empty',
     tls: 'empty',
     child_process: 'empty',
+  },
+  devServer: {
+    hot: true,
   },
   // Turn off performance hints during development because we don't do any
   // splitting or minification in interest of speed. These warnings become

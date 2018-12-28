@@ -1,28 +1,17 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
-import { ConnectedRouter } from 'connected-react-router';
-import { PersistGate } from 'redux-persist/integration/react';
-import createHistory from 'history/createBrowserHistory';
-import RootRouter from 'containers/root-router';
-import configureStore from 'rdx/configure-store';
-import registerServiceWorker from 'lib/register-service-worker';
-import './index.scss';
+import { render } from 'react-dom';
+import App from './app';
 
-const history = createHistory();
+const rootElement = document.getElementById('root');
 
-const { store, persistor } = configureStore(history);
+render(<App />, rootElement);
 
-const App = () => (
-  <Provider store={store}>
-    <PersistGate persistor={persistor}>
-      <ConnectedRouter history={history}>
-        <RootRouter />
-      </ConnectedRouter>
-    </PersistGate>
-  </Provider>
-);
-
-
-ReactDOM.render(<App />, document.getElementById('root'));
-registerServiceWorker();
+if (module.hot) {
+  module.hot.accept('./app', () => {
+    const Application = require('./app');
+    render(
+      <Application />,
+      rootElement
+    );
+  });
+}
