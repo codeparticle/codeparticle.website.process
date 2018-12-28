@@ -1,4 +1,4 @@
-import createReducer from 'rdx/utils/createReducer';
+import createReducer from 'rdx/utils/create-reducer';
 import types from 'rdx/modules/auth/types';
 
 export default {

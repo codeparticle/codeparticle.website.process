@@ -1,16 +1,13 @@
-import React, { Children } from 'react';
+import React, { Children, Component } from 'react';
 import PropTypes from 'prop-types';
-import customPropTypes from 'lib/customPropTypes';
-
+import customPropTypes from 'lib/custom-prop-types';
 import { messageTypes } from 'rdx/modules/messages/constants';
-
-import FormMessage from 'components/FormMessage';
-
-import './index.css';
+import FormMessage from 'components/form-message';
+import './index.scss';
 
 const BYPASS_FORM_VALIDATION = process.env.REACT_APP_BYPASS_FORM_VALIDATION;
 
-class Form extends React.Component {
+class Form extends Component {
   state = {
     inputs: {},
     showInputErrorsMoment: new Date().getTime(),

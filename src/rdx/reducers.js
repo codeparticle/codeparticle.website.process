@@ -1,5 +1,5 @@
 import { combineReducers } from 'redux';
-import activeRequestsReducers from 'rdx/modules/activeRequests/reducers';
+import activeRequestsReducers from 'rdx/modules/active-requests/reducers';
 import appReducers from 'rdx/modules/app/reducers';
 import routerReducers from 'rdx/modules/router/reducers';
 import authReducers from 'rdx/modules/auth/reducers';

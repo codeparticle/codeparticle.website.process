@@ -1,4 +1,4 @@
-import createReducer from 'rdx/utils/createReducer';
+import createReducer from 'rdx/utils/create-reducer';
 import types from 'rdx/modules/messages/types';
 import { messageTypes } from 'rdx/modules/messages/constants';
 

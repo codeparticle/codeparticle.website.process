@@ -1,7 +1,6 @@
 import { put } from 'redux-saga/effects';
-
-import makeRequest from 'rdx/utils/makeRequest';
-import getErrorActions from 'rdx/utils/getErrorActions';
+import makeRequest from 'rdx/utils/make-request';
+import getErrorActions from 'rdx/utils/get-error-actions';
 import actions from 'rdx/actions';
 
 function* logout() {

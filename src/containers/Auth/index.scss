@@ -7,18 +7,22 @@
   align-items: center;
   justify-content: center;
   background-color: $white;
+
   .form {
     padding: 25px 40px;
     background-color: $off-white;
     width: 400px;
     box-shadow: 0.2em 0.2em 0.6em #c7c7c7;
   }
+
   .input {
     margin-top: 1em;
   }
+
   .input-label {
     color: $black;
   }
+
   .header-logo {
     height: auto;
     width: 250px;
@@ -26,12 +30,14 @@
     padding: 20px;
     margin-bottom: 10px;
   }
+
   .button-container {
     display: flex;
     flex: 1;
     align-items: center;
     justify-content: center;
   }
+  
   .submit-button {
     margin-top: 40px;
     align-self: center;

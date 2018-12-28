@@ -25,7 +25,7 @@ Things you can do:
 ### Redux Design
 
 - The redux organization principle is based on [ducks](https://github.com/erikras/ducks-modular-redux), which groups based on category. Conceptually, this regards the store as a data space decoupled from the views connected to it.
-- Helpers residing in `src/rdx/utils/propsMapping.js` are used to make actions/data props mapping easy for redux connected components. Keys for selectors and actions can be easily updated.
+- Helpers residing in `src/rdx/utils/props-mapping.js` are used to make actions/data props mapping easy for redux connected components. Keys for selectors and actions can be easily updated.
     * This should help keep imports clean, reduce barrier to adjusting redux connection, and make it easier to divorce a component from redux altogether
     * this also enforces / makes easy the use of selectors, keeping that logic out of views and easy to refactor as data changes
 

@@ -1,5 +1,5 @@
 {
-  "extends": "airbnb",
+  "extends": "eslint-config-airbnb",
   "parserOptions": {
     "ecmaVersion": 6,
     "sourceType": "module",
@@ -19,11 +19,33 @@
   ],
   "parser": "babel-eslint",
   "rules": {
+    "brace-style": [2, "1tbs", { "allowSingleLine": true }],
+    "comma-dangle": ["error", "always-multiline"],
+    "comma-spacing":["error", {
+      "before": false,
+      "after": true
+    }],
+    "curly": 2,
     "function-paren-newline": 0,
-    "react/jsx-filename-extension": 0,
+    "global-require": 0,
     "import/no-named-as-default": 0,
+    "import/prefer-default-export": 0,
+    "object-curly-spacing": ["error", "always"],
+    "no-param-reassign": 0,
+    "no-unused-vars": 2,
+    "no-console": 0,
+    "no-trailing-spaces": "error",
+    "prefer-const": ["error"],
     "react/button-has-type": 0,
-    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "react/jsx-filename-extension": 0,
+    "react/prop-types": 0,
+    "react/destructuring-assignment": [0, "always", { "ignoreClassFields": true }],
+    "react/jsx-wrap-multilines": ["error", {
+      "default": "parens-new-line",
+      "arrow": "parens"
+  }],
+    "space-before-blocks": "error",
+    "semi": ["error", "always"],
     "valid-jsdoc": ["error", {
       "prefer": {
         "arg": "param",

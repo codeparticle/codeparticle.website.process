@@ -1,12 +1,10 @@
-import React from 'react';
+import React, { Component } from 'react';
 // import PropTypes from 'prop-types';
 import { Switch, Route } from 'react-router';
+import NotFound from 'components/not-found';
+import './index.scss';
 
-import NotFound from 'components/NotFound';
-
-import './index.css';
-
-class Main extends React.Component {
+class Main extends Component {
   static renderMainRouter() {
     return (
       <Switch>

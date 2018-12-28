@@ -1,4 +1,4 @@
-import activeRequestsSelectors from 'rdx/modules/activeRequests/selectors';
+import activeRequestsSelectors from 'rdx/modules/active-requests/selectors';
 import appSelectors from 'rdx/modules/app/selectors';
 import routerSelectors from 'rdx/modules/router/selectors';
 import authSelectors from 'rdx/modules/auth/selectors';

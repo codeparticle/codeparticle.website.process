@@ -1,6 +1,5 @@
 import { takeLatest } from 'redux-saga/effects';
-import trackRequests from 'rdx/utils/trackRequests';
-
+import trackRequests from 'rdx/utils/track-requests';
 import types from 'rdx/modules/auth/types';
 import login from 'rdx/modules/auth/sagas/login';
 import logout from 'rdx/modules/auth/sagas/logout';

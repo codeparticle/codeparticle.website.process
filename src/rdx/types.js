@@ -1,4 +1,4 @@
-import activeRequestsTypes from 'rdx/modules/activeRequests/types';
+import activeRequestsTypes from 'rdx/modules/active-requests/types';
 import appTypes from 'rdx/modules/app/types';
 import routerTypes from 'rdx/modules/router/types';
 import authTypes from 'rdx/modules/auth/types';
