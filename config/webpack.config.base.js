@@ -1,4 +1,5 @@
-const path = require('path');
+'use strict';
+
 const paths = require('./paths');
 const ModuleScopePlugin = require('react-dev-utils/ModuleScopePlugin');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
@@ -6,17 +7,18 @@ const ExtractTextPlugin = require('extract-text-webpack-plugin');
 module.exports = {
   resolve: {
     extensions: ['.web.js', '.mjs', '.js', '.json', '.web.jsx', '.jsx', '.scss', '.css', '.otf', '.json'],
-    modules: ['node_modules', paths.appNodeModules].concat(
+    modules: [paths.appNodeModules, 'node_modules'].concat(
       // It is guaranteed to exist because we tweak it in `env.js`
-      process.env.NODE_PATH.split(path.delimiter).filter(Boolean)
+      process.env.NODE_PATH.split(paths.delimiter).filter(Boolean)
     ),
     alias: {
+      // Create aliases the components can use for import in js files
       'react-native': 'react-native-web',
-      'lib': path.resolve(__dirname, '../src/lib'),
-      'hocs': path.resolve(__dirname, '../src/hocs'),
-      'rdx': path.resolve(__dirname, '../src/rdx'),
-      'containers': path.resolve(__dirname, '../src/containers'),
-      'components': path.resolve(__dirname, '../src/components'),
+      'lib': paths.appLib,
+      'hocs': paths.appHocs,
+      'rdx': paths.appRdx,
+      'containers': paths.appContainers,
+      'components': paths.appComponents,
     },
     plugins: [
       // Prevents users from importing files from outside of src/ (or node_modules/).
@@ -32,21 +34,21 @@ module.exports = {
       // Take all sass files, compile them, and bundle them in with our js bundle
       {
         test: /\.s?css$/,
-        use: ExtractTextPlugin.extract({
+        use: ['css-hot-loader'].concat(ExtractTextPlugin.extract({
           fallback: 'style-loader',
           use: [{
             loader: 'css-loader',
             options: {
-              root: path.resolve(__dirname, '../src/styles'),
+              root: paths.appStyles,
             },
           }, {
             loader: 'sass-loader',
             options: {
-              includePaths: [path.resolve(__dirname, '../src/styles')],
+              includePaths: [paths.appStyles],
             },
           },
           ],
-        }),
+        })),
       },
       {
         test: /\.json$/,

@@ -4,7 +4,8 @@
 From root:
 
 - `cp .env.example .env`
-- `npm install`
+- Make sure you're on nodejs v8.11.3 or v8.11.4 (use `nvm use v8.11.[x]`)
+- `yarn install`
 - `npm start`
 
 ### Generators
