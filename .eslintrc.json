@@ -15,6 +15,10 @@
     "node": true,
     "jest": true
   },
+  "globals": {
+    "mountWithIntl": true,
+    "mountWithStore": true
+  },
   "plugins": [
     "jest"
   ],

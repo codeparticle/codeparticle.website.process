@@ -6,7 +6,7 @@ From root:
 - `cp .env.example .env`
 - Make sure you're on nodejs v8.11.3 or v8.11.4 (use `nvm use v8.11.[x]`)
 - `yarn install`
-- `npm start`
+- `npm run start`
 
 ### Generators
 Creating new files from the command line should be quick and easy to skip over the tedium, encourage finer-grained modularization, and preserve consistency. The logic behind this is located in `internals/generators` and implemented with [plop](https://github.com/amwmedia/plop).

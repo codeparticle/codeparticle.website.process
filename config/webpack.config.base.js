@@ -19,6 +19,7 @@ module.exports = {
       'rdx': paths.appRdx,
       'containers': paths.appContainers,
       'components': paths.appComponents,
+      'translations': paths.appTranslations,
     },
     plugins: [
       // Prevents users from importing files from outside of src/ (or node_modules/).

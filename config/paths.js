@@ -60,5 +60,6 @@ module.exports = {
   appRdx: resolveApp('src/rdx'),
   appContainers: resolveApp('src/containers'),
   appComponents: resolveApp('src/components'),
+  appTranslations: resolveApp('src/translations'),
   delimiter: path.delimiter,
 };
