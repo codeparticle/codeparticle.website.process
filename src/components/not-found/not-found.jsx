@@ -1,7 +1,7 @@
 import React from 'react';
 // import PropTypes from 'prop-types';
 // import classNames from 'classnames';
-import './index.scss';
+import './not-found.scss';
 
 const NotFound = () => (
   <div className="not-found-rct-component">

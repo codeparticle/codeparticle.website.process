@@ -1,11 +1,11 @@
 import React, { Fragment } from 'react';
 import { Switch, Route } from 'react-router';
-import Main from 'containers/main';
-import Auth from 'containers/auth';
-import FlashMessages from 'containers/flash-messages';
-import AuthGuard from 'components/auth-guard';
-import NotFound from 'components/not-found';
-import './index.scss';
+import Main from 'containers/main/main';
+import Auth from 'containers/auth/auth';
+import FlashMessages from 'containers/flash-messages/flash-messages';
+import AuthGuard from 'components/auth-guard/auth-guard';
+import NotFound from 'components/not-found/not-found';
+import './root-router.scss';
 
 const RootRouter = () => (
   <Fragment>

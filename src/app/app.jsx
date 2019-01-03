@@ -3,10 +3,10 @@ import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
 import { PersistGate } from 'redux-persist/integration/react';
 import createHistory from 'history/createBrowserHistory';
-import RootRouter from 'containers/root-router';
+import RootRouter from 'containers/root-router/root-router';
 import configureStore from 'rdx/configure-store';
 import registerServiceWorker from 'lib/register-service-worker';
-import './index.scss';
+import './app.scss';
 
 const history = createHistory();
 

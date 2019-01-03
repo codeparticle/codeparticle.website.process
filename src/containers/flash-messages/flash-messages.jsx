@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import { connect } from 'react-redux';
 import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/props-mapping';
 import { messageTypes } from 'rdx/modules/messages/constants';
-import './index.scss';
+import './flash-messages.scss';
 
 class FlashMessages extends Component {
   hoverActive = false;

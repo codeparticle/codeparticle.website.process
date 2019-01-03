@@ -4,8 +4,8 @@ import classNames from 'classnames';
 import uuidv1 from 'uuid/v1';
 import parseFloatString from 'lib/utils/parse-float-string';
 import isValidEmail from 'lib/utils/is-valid-email';
-import FormConnect from 'hocs/form-connect';
-import './index.scss';
+import FormConnect from 'hocs/form-connect/form-connect';
+import './text-input.scss';
 
 class TextInput extends Component {
   constructor(props) {

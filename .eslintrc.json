@@ -5,7 +5,8 @@
     "sourceType": "module",
     "ecmaFeatures": {
       "jsx": true,
-      "modules": true
+      "modules": true,
+      "experimentalObjectRestSpread": true
     }
   },
   "env": {
@@ -39,6 +40,7 @@
     "react/button-has-type": 0,
     "react/jsx-filename-extension": 0,
     "react/prop-types": 0,
+    "react/jsx-uses-vars": 2,
     "react/destructuring-assignment": [0, "always", { "ignoreClassFields": true }],
     "react/jsx-wrap-multilines": ["error", {
       "default": "parens-new-line",
