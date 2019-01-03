@@ -3,9 +3,9 @@ import isoFetch from 'isomorphic-fetch';
 class Api {
   static headers(authToken) {
     const headers = {
-      Accept: 'application/json',
+      'Accept': 'application/json',
       'Content-Type': 'application/json',
-      Authorization: 'nope',
+      'Authorization': 'nope',
     };
     if (authToken) headers.Authorization = authToken;
     return headers;

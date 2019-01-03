@@ -1,10 +1,15 @@
-/* import { CHINESE_STATE } from './locales/zh-cn';
-import { DUTCH_STATE } from './locales/nl'; */
+/*
+import { CHINESE_STATE } from './locales/zh-cn';
+import { DUTCH_STATE } from './locales/nl';
+*/
 import { ENGLISH_STATE } from './locales/en';
-/* import { FRENCH_STATE } from './locales/fr';
+/*
+import { FRENCH_STATE } from './locales/fr';
 import { GEORGIAN_STATE } from './locales/ka';
 import { GERMAN_STATE } from './locales/de';
+*/
 import { SPANISH_STATE } from './locales/es';
+/*
 import { RUSSIAN_STATE } from './locales/ru';
 import { JAPANESE_STATE } from './locales/ja';
 import { TURKISH_STATE } from './locales/tr';
@@ -16,12 +21,12 @@ import { CZECH_STATE } from './locales/cs';
 import { GREEK_STATE } from './locales/el';
 */
 
-export default {
+export const localeData = {
   /* 'zh-cn': CHINESE_STATE,
   'de': GERMAN_STATE, */
-  en: ENGLISH_STATE,
-  /* 'es': SPANISH_STATE,
-  'fr': FRENCH_STATE,
+  'en': ENGLISH_STATE,
+  'es': SPANISH_STATE,
+  /*'fr': FRENCH_STATE,
   'ka': GEORGIAN_STATE,
   'nl': DUTCH_STATE,
   'ru': RUSSIAN_STATE,

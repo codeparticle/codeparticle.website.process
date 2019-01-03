@@ -6,6 +6,7 @@ import createHistory from 'history/createBrowserHistory';
 import RootRouter from 'containers/root-router/root-router';
 import configureStore from 'rdx/configure-store';
 import registerServiceWorker from 'lib/register-service-worker';
+import IntlProvider from 'containers/intl-provider/intl-provider';
 import './app.scss';
 
 const history = createHistory();
@@ -14,11 +15,13 @@ const { store, persistor } = configureStore(history);
 
 const App = () => (
   <Provider store={store}>
-    <PersistGate persistor={persistor}>
-      <ConnectedRouter history={history}>
-        <RootRouter />
-      </ConnectedRouter>
-    </PersistGate>
+    <IntlProvider>
+      <PersistGate persistor={persistor}>
+        <ConnectedRouter history={history}>
+          <RootRouter />
+        </ConnectedRouter>
+      </PersistGate>
+    </IntlProvider>
   </Provider>
 );
 
