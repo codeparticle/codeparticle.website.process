@@ -10,7 +10,8 @@
 /build
 
 # compiled style files
-src/**/*.css
+# src/**/*.css
+/public/css
 
 # misc
 .DS_Store

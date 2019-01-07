@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import FormMessage from 'components/form-message';
+import FormMessage from 'components/form-message/form-message';
 import uuidv1 from 'uuid/v1';
 import stripObjectProps from 'lib/utils/strip-object-props';
-import './index.scss';
+import './form-connect.scss';
 
 /*
   for an input to be connected via this HOC

@@ -5,7 +5,7 @@ import { IntlProvider } from 'react-intl';
 
 const ConnectedIntlProvider = props => (
   <IntlProvider {...props}>
-    <div className={props.locale}>
+    <div className={props.locale} style={{ height: '100%' }}>
       {props.children}
     </div>
   </IntlProvider>

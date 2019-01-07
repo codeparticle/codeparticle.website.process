@@ -1,15 +1,14 @@
-# React Web Template
+### React Web Template ###
 
 ### Run
-
 From root:
 
 - `cp .env.example .env`
-- `npm install`
-- `npm start`
+- Make sure you're on nodejs v8.11.3 or v8.11.4 (use `nvm use v8.11.[x]`)
+- `yarn install`
+- `npm run start`
 
 ### Generators
-
 Creating new files from the command line should be quick and easy to skip over the tedium, encourage finer-grained modularization, and preserve consistency. The logic behind this is located in `internals/generators` and implemented with [plop](https://github.com/amwmedia/plop).
 
 `npm i -g plop`
@@ -23,7 +22,6 @@ Things you can do:
     * there is also an option to do the same for sagas
 
 ### Redux Design
-
 - The redux organization principle is based on [ducks](https://github.com/erikras/ducks-modular-redux), which groups based on category. Conceptually, this regards the store as a data space decoupled from the views connected to it.
 - Helpers residing in `src/rdx/utils/props-mapping.js` are used to make actions/data props mapping easy for redux connected components. Keys for selectors and actions can be easily updated.
     * This should help keep imports clean, reduce barrier to adjusting redux connection, and make it easier to divorce a component from redux altogether
@@ -31,7 +29,6 @@ Things you can do:
 
 
 ### Styling
-
 - All components are wrapped with a class suffixed `-rct-component`, which guards against collision
 - For passing down styles, if they don't make sense residing in the child component, components can take in props.className with a class whose styles are specified in the parent's style file
 
@@ -41,11 +38,9 @@ Things you can do:
 - if request actions have an `id` parameter, views will be able to track particular instances that they fire off (see `activeRequestExists` in `rdx/modules/activeRequests/selectors`)
 
 ### Routing
-
 - navigation is tethered to redux, through which one can access state, currentQuery params, and fire actions
 
 ### Environmental Variables
-
 from root: `cp .env.example .env`
 Any env vars prefixed with `REACT_APP_` will be accessible via `process.env`
 
@@ -55,12 +50,10 @@ Any env vars prefixed with `REACT_APP_` will be accessible via `process.env`
 - prefix container specific rdx modules with camelCased container name (e.g. `loginModalError`)
 
 ### Misc
-
 - We aren't using anything like Immutable as of now, so be sure to not to mutate data in reducers!
 - Webpack is set up to understand absolute paths (once the `NODE_PATH` environmental var is set), which may seem unnecessary sometimes but makes it easy to move things around if needed
 
 ### Tools
-
 - [classnames](https://github.com/JedWatson/classnames)
 - [redux-saga](https://github.com/JedWatson/classnames)
 - [jest](http://jestjs.io/docs/en/api.html)

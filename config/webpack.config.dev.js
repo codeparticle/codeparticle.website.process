@@ -53,6 +53,7 @@ const devConfig =  {
     // We include the app code last so that if there is a runtime error during
     // initialization, it doesn't blow up the WebpackDevServer client, and
     // changing JS code would still trigger a refresh.
+    `webpack-dev-server/client?http://127.0.0.1:${process.env.PORT || 3000}/`,
     'webpack/hot/only-dev-server',
   ],
   output: {
@@ -61,14 +62,17 @@ const devConfig =  {
     // This does not produce a real file. It's just the virtual path that is
     // served by WebpackDevServer in development. This is the JS bundle
     // containing code from all our entry points, and the Webpack runtime.
-    filename: 'static/js/bundle.js',
+    filename: 'bundle.js',
     // There are also additional JS chunk files if you use code splitting.
-    chunkFilename: 'static/js/[name].chunk.js',
+    chunkFilename: '[name].chunk.js',
     // This is the URL that app is served from. We use "/" in development.
     publicPath: publicPath,
     // Point sourcemap entries to original disk location (format as URL on Windows)
     devtoolModuleFilenameTemplate: info =>
       path.resolve(info.absoluteResourcePath).replace(/\\/g, '/'),
+    
+    // path of the compiled files
+    path: path.join(__dirname, '../build'),
   },
   module: {
     strictExportPresence: true,
@@ -152,7 +156,9 @@ const devConfig =  {
     child_process: 'empty',
   },
   devServer: {
+    host: '127.0.0.1',
     hot: true,
+    port: process.env.PORT || '3000',
   },
   // Turn off performance hints during development because we don't do any
   // splitting or minification in interest of speed. These warnings become

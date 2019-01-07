@@ -1,7 +1,6 @@
 import createReducer from 'rdx/utils/create-reducer';
 import types from 'rdx/modules/messages/types';
 import { messageTypes } from 'rdx/modules/messages/constants';
-
 import uuidv1 from 'uuid/v1';
 
 export default {

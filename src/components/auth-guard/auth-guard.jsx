@@ -5,7 +5,7 @@ import customPropTypes from 'lib/custom-prop-types';
 import { Redirect } from 'react-router';
 import { connect } from 'react-redux';
 import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/props-mapping';
-import './index.scss';
+import './auth-guard.scss';
 
 class AuthGuard extends Component {
   render() {

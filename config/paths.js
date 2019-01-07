@@ -1,5 +1,7 @@
 'use strict';
 
+// this file defines all relevant paths to be used in webpack configs
+
 const path = require('path');
 const fs = require('fs');
 const url = require('url');
@@ -52,4 +54,12 @@ module.exports = {
   appNodeModules: resolveApp('node_modules'),
   publicUrl: getPublicUrl(resolveApp('package.json')),
   servedPath: getServedPath(resolveApp('package.json')),
+  appStyles: resolveApp('src/styles'),
+  appLib: resolveApp('src/lib'),
+  appHocs: resolveApp('src/hocs'),
+  appRdx: resolveApp('src/rdx'),
+  appContainers: resolveApp('src/containers'),
+  appComponents: resolveApp('src/components'),
+  appTranslations: resolveApp('src/translations'),
+  delimiter: path.delimiter,
 };

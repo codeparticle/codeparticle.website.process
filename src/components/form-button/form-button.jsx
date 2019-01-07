@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
-import './index.scss';
+import './form-button.scss';
 
 // must be React.Compoent to update on context changes
 class FormButton extends Component { // eslint-disable-line react/prefer-stateless-function

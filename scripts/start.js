@@ -11,7 +11,7 @@ process.on('unhandledRejection', err => {
   throw err;
 });
 
-// Ensure environment variables are read.
+// Ensure environment variables are read (env.js).
 require('../config/env');
 
 const fs = require('fs');

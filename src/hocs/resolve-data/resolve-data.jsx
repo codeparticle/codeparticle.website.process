@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import customPropTypes from 'lib/custom-prop-types';
 import { connect } from 'react-redux';
@@ -6,9 +6,9 @@ import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/props-mappi
 import uuidv1 from 'uuid/v1';
 import { activeRequestExists } from 'rdx/modules/active-requests/selectors';
 import { areDataPtsValid, getComponentStateMappers } from 'hocs/utils/resolver-data';
-import './index.scss';
+import './resolve-data.scss';
 
-class Resolver extends React.Component {
+class Resolver extends Component {
   constructor(props) {
     super(props);
     this.state = {

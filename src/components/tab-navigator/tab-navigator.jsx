@@ -5,7 +5,7 @@ import customPropTypes from 'lib/custom-prop-types';
 import { connect } from 'react-redux';
 import { Switch, Route } from 'react-router';
 import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/props-mapping';
-import './index.scss';
+import './tab-navigator.scss';
 
 class TabNavigator extends Component {
   renderTabs(tabs) {

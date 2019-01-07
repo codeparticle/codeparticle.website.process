@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 // import PropTypes from 'prop-types';
 import { Switch, Route } from 'react-router';
-import NotFound from 'components/not-found';
-import './index.scss';
+import NotFound from 'components/not-found/not-found';
+import './main.scss';
 
 class Main extends Component {
   static renderMainRouter() {

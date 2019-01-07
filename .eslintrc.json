@@ -5,7 +5,8 @@
     "sourceType": "module",
     "ecmaFeatures": {
       "jsx": true,
-      "modules": true
+      "modules": true,
+      "experimentalObjectRestSpread": true
     }
   },
   "env": {
@@ -14,18 +15,25 @@
     "node": true,
     "jest": true
   },
+  "globals": {
+    "mountWithIntl": true,
+    "mountWithStore": true
+  },
   "plugins": [
     "jest"
   ],
   "parser": "babel-eslint",
   "rules": {
-    "brace-style": [2, "1tbs", { "allowSingleLine": true }],
+    "brace-style": [2, "1tbs", {
+      "allowSingleLine": true
+    }],
     "comma-dangle": ["error", "always-multiline"],
     "comma-spacing":["error", {
       "before": false,
       "after": true
     }],
     "curly": 2,
+    "dot-notation": "off",
     "function-paren-newline": 0,
     "global-require": 0,
     "import/no-named-as-default": 0,
@@ -36,15 +44,20 @@
     "no-console": 0,
     "no-trailing-spaces": "error",
     "prefer-const": ["error"],
+    "quote-props": ["error", "consistent"],
     "react/button-has-type": 0,
     "react/jsx-filename-extension": 0,
     "react/prop-types": 0,
-    "react/destructuring-assignment": [0, "always", { "ignoreClassFields": true }],
+    "react/jsx-uses-vars": 2,
+    "react/destructuring-assignment": [0, "always", {
+      "ignoreClassFields": true
+    }],
     "react/jsx-wrap-multilines": ["error", {
       "default": "parens-new-line",
       "arrow": "parens"
-  }],
+    }],
     "space-before-blocks": "error",
+    "spaced-comment": "off",
     "semi": ["error", "always"],
     "valid-jsdoc": ["error", {
       "prefer": {

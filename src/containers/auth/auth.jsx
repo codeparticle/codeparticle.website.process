@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import customPropTypes from 'lib/custom-prop-types';
 import { connect } from 'react-redux';
 import { getRdxActionMapper, getRdxSelectionMapper } from 'rdx/utils/props-mapping';
-import Form from 'components/form';
-import { FormTextInput } from 'components/text-input';
-import FormButton from 'components/form-button';
-import './index.scss';
+import Form from 'components/form/form';
+import { FormTextInput } from 'components/text-input/text-input';
+import FormButton from 'components/form-button/form-button';
+import './auth.scss';
 
 class Auth extends PureComponent {
   render() {
