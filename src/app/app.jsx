@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { Provider } from 'react-redux';
 import { ConnectedRouter } from 'connected-react-router';
 import { PersistGate } from 'redux-persist/integration/react';
@@ -7,6 +7,7 @@ import RootRouter from 'containers/root-router/root-router';
 import configureStore from 'rdx/configure-store';
 import registerServiceWorker from 'lib/register-service-worker';
 import IntlProvider from 'containers/intl-provider/intl-provider';
+import RootHelmet from 'containers/root-helmet/root-helmet';
 import './app.scss';
 
 const history = createHistory();
@@ -18,7 +19,10 @@ const App = () => (
     <IntlProvider>
       <PersistGate persistor={persistor}>
         <ConnectedRouter history={history}>
-          <RootRouter />
+          <Fragment>
+            <RootHelmet />
+            <RootRouter />
+          </Fragment>
         </ConnectedRouter>
       </PersistGate>
     </IntlProvider>
