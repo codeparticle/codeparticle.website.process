@@ -98,6 +98,7 @@
     "build": "npm-run-all build-css build-js",
     "build-js": "node scripts/build.js",
     "build:prod": "node src/server",
+    "build:docker": "sh ./run-docker-compose.sh",
     "test": "node scripts/test.js --env=jsdom",
     "test:unit": "node scripts/test.js --env=jsdom packages/",
     "generate": "./node_modules/.bin/plop --plopfile internals/generators/index.js",
