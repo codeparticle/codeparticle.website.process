@@ -1,0 +1,32 @@
+#
+# Basic launch into background:
+# $ docker-compose up -d
+#
+# Overridable parameters:
+# $ ENV=prod PORT=3000 TAG=$(git rev-parse --short HEAD) docker-compose up -d
+#
+# Shut down:
+# $ docker-compose down
+#
+# Force image rebuild and launch (add --build):
+# $ docker-compose up -d --build
+#
+
+version: '3'
+
+services:
+  proxy:
+    image: proxy:$TAG
+    build:
+      context: ./nginx-docker
+    ports:
+      - $PORT:80
+    depends_on:
+      - "app"
+    restart: unless-stopped
+  app:
+    image: app:$TAG
+    build:
+      context: ./
+    environment:
+      - NODE_ENV=$ENV

@@ -3,10 +3,38 @@
 ### Run
 From root:
 
-- `cp .env.example .env`
 - Make sure you're on nodejs v8.11.3 or v8.11.4 (use `nvm use v8.11.[x]`)
 - `yarn install`
-- `npm run start`
+- `yarn run start`
+
+### Docker
+Change `react-starter-app` to a more appropriate app name after branching off
+
+---
+
+To run the project in default `.env` options
+
+Basic launch into background:
+$ `docker-compose up -d`
+
+Shut down:
+$ `docker-compose down`
+
+Force image rebuild and launch (add --build), this runs the default .env option still:
+$ `docker-compose up -d --build`
+
+Override parameters in CLI by defining them:
+$ `ENV=prod PORT=3000 TAG=$(git rev-parse --short HEAD) docker-compose up -d`
+
+---
+
+Best option to run production mode is to run `run-docker-compose.sh` script
+
+First on the root of project, give executable permission to the file:
+$ `chmod +x run-docker-compose.sh`
+
+Then, execute the shell script:
+$ `./run-docker-compose.sh`
 
 ### Generators
 Creating new files from the command line should be quick and easy to skip over the tedium, encourage finer-grained modularization, and preserve consistency. The logic behind this is located in `internals/generators` and implemented with [plop](https://github.com/amwmedia/plop).
@@ -52,6 +80,10 @@ Any env vars prefixed with `REACT_APP_` will be accessible via `process.env`
 ### Misc
 - We aren't using anything like Immutable as of now, so be sure to not to mutate data in reducers!
 - Webpack is set up to understand absolute paths (once the `NODE_PATH` environmental var is set), which may seem unnecessary sometimes but makes it easy to move things around if needed
+
+.env File is used for acrobat or adobe containing information for a dictionary
+(https://fileinfo.com/extension/env)
+- `cp .env.example .env`
 
 ### Tools
 - [classnames](https://github.com/JedWatson/classnames)
