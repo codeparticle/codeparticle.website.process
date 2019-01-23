@@ -91,14 +91,14 @@
     }
   },
   "scripts": {
-    "start": "npm-run-all -p watch-css start-js",
+    "start": "node src/server",
+    "dev": "npm-run-all -p watch-css start-js",
     "start-js": "node scripts/start.js",
     "build-css": "rm -rf ./public/css && ./node_modules/.bin/node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o ./public/css --output-style expanded",
     "watch-css": "npm run build-css && node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o ./public/css --watch --recursive --output-style expanded",
     "build": "npm-run-all build-css build-js",
     "build-js": "node scripts/build.js",
-    "build:prod": "node src/server",
-    "build:docker": "sh ./run-docker-compose.sh",
+    "deploy": "sh ./scripts/deploy.sh",
     "test": "node scripts/test.js --env=jsdom",
     "test:unit": "node scripts/test.js --env=jsdom packages/",
     "generate": "./node_modules/.bin/plop --plopfile internals/generators/index.js",

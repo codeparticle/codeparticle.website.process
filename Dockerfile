@@ -8,8 +8,6 @@ WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 
 # needed for build script to work
-COPY package.json ./
-COPY yarn.lock ./
 COPY . .
 RUN yarn install
 RUN yarn run build
