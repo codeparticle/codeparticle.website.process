@@ -5,7 +5,7 @@ From root:
 
 - Make sure you're on nodejs v8.11.3 or v8.11.4 (use `nvm use v8.11.[x]`)
 - `yarn install`
-- `yarn run start`
+- `yarn run dev`
 
 ### Docker
 Change `react-starter-app` to a more appropriate app name after branching off
@@ -28,13 +28,13 @@ $ `ENV=prod PORT=3000 TAG=$(git rev-parse --short HEAD) docker-compose up -d`
 
 ---
 
-Best option to run production mode is to run `run-docker-compose.sh` script
+Best option to run production mode is to run `deploy.sh` script
 
 First on the root of project, give executable permission to the file:
-$ `chmod +x run-docker-compose.sh`
+$ `chmod +x ./scripts/deploy.sh`
 
-Then, execute the shell script:
-$ `./run-docker-compose.sh`
+Then, run the package.json script which will run the deploy.sh script:
+$ `yarn run deploy`
 
 ### Generators
 Creating new files from the command line should be quick and easy to skip over the tedium, encourage finer-grained modularization, and preserve consistency. The logic behind this is located in `internals/generators` and implemented with [plop](https://github.com/amwmedia/plop).
