@@ -1,0 +1,31 @@
+{
+  "rootNodes": [
+    {
+      "title": "Concept",
+      "size": 0,
+      "children": [
+        {
+          "title": "Target",
+          "size": 1,
+          "children": [
+            {
+              "title": "Risk",
+              "size": 2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Design",
+      "size": 0,
+      "children": [
+        {
+          "title": "R&D",
+          "size": 2,
+          "children": []
+        }
+      ]
+    }
+  ]
+}

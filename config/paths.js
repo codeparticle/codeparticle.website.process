@@ -55,11 +55,6 @@ module.exports = {
   publicUrl: getPublicUrl(resolveApp('package.json')),
   servedPath: getServedPath(resolveApp('package.json')),
   appStyles: resolveApp('src/styles'),
-  appLib: resolveApp('src/lib'),
-  appHocs: resolveApp('src/hocs'),
-  appRdx: resolveApp('src/rdx'),
-  appContainers: resolveApp('src/containers'),
-  appComponents: resolveApp('src/components'),
-  appTranslations: resolveApp('src/translations'),
+  d3Process: resolveApp('src/d3-process'),
   delimiter: path.delimiter,
 };
