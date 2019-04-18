@@ -1,4 +1,4 @@
-import * as d3 from 'd3';
+import { forceSimulation, forceLink } from 'd3-force';
 
 import {
   ROOT_NODES_DISTANCE,
@@ -127,7 +127,7 @@ const runSimulation = (canvas, data) => {
     onProcessTick();
   };
 
-  return d3.forceSimulation(nodes).force('link', d3.forceLink(links).id(d => d.id).strength(0)).on('tick', () => {
+  return forceSimulation(nodes).force('link', forceLink(links).id(d => d.id).strength(0)).on('tick', () => {
     onProcessTick();
     onDrawTick();
 

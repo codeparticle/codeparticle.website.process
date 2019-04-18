@@ -56,5 +56,6 @@ module.exports = {
   servedPath: getServedPath(resolveApp('package.json')),
   appStyles: resolveApp('src/styles'),
   d3Process: resolveApp('src/d3-process'),
+  d3ProcessIndexJs: resolveApp('src/d3-process/index.js'),
   delimiter: path.delimiter,
 };
