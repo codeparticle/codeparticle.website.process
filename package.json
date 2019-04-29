@@ -6,11 +6,11 @@
     "name": "codeparticle",
     "email": "web-accounts@codeparticle.com"
   },
-  "description": "A React Starter App bundle with generic built that react projects can extend from.",
+  "description": "A javascript library that draws a process animation on a canvas.",
   "contributors": [
     {
-      "name": "William Chen",
-      "email": "william@codeparticle.com"
+      "name": "Ericky Dos Santos",
+      "email": "ericky@codeparticle.com"
     }
   ],
   "dependencies": {
@@ -32,8 +32,9 @@
     "chalk": "1.1.3",
     "classnames": "^2.2.6",
     "connected-react-router": "^4.3.0",
+    "copy-pkg-json-webpack-plugin": "^0.0.38",
     "css-loader": "^0.28.9",
-    "d3": "^5.9.2",
+    "d3-force": "^2.0.1",
     "decode-uri-component": "^0.2.0",
     "dotenv": "4.0.0",
     "dotenv-expand": "4.2.0",
@@ -94,6 +95,8 @@
   "scripts": {
     "start": "node src/server",
     "dev": "npm-run-all -p watch-css start-js",
+    "prepublish": "NODE_ENV=production ./node_modules/.bin/webpack --config ./config/webpack.config.publish.js",
+    "publish": "cd build && npm publish",
     "start-js": "node scripts/start.js",
     "build-css": "rm -rf ./public/css && ./node_modules/.bin/node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o ./public/css --output-style expanded",
     "watch-css": "npm run build-css && node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o ./public/css --watch --recursive --output-style expanded",
