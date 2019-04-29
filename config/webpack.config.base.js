@@ -14,12 +14,7 @@ module.exports = {
     alias: {
       // Create aliases the components can use for import in js files
       'react-native': 'react-native-web',
-      'lib': paths.appLib,
-      'hocs': paths.appHocs,
-      'rdx': paths.appRdx,
-      'containers': paths.appContainers,
-      'components': paths.appComponents,
-      'translations': paths.appTranslations,
+      'd3-process': paths.d3Process,
     },
     plugins: [
       // Prevents users from importing files from outside of src/ (or node_modules/).

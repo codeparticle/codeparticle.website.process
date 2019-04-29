@@ -91,7 +91,7 @@ const devConfig =  {
             options: {
               formatter: eslintFormatter,
               eslintPath: require.resolve('eslint'),
-              
+              emitWarning: true,
             },
             loader: require.resolve('eslint-loader'),
           },

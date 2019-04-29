@@ -1,4 +1,0 @@
-export default {
-  NEW_ERROR_EVENT: 'NEW_ERROR_EVENT',
-  NEW_MESSAGE_EVENT: 'NEW_MESSAGE_EVENT',
-};

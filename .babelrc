@@ -19,11 +19,7 @@
       {
         "cwd":"babelrc",
         "alias": {
-          "lib": "./src/lib",
-          "rdx": "./src/rdx",
-          "hocs": "./src/hocs",
-          "containers": "./src/containers",
-          "components": "./src/components",
+          "d3-process": "./src/d3-process"
         }
       }
     ]
