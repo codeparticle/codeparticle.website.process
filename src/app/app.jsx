@@ -15,7 +15,7 @@ const App = () => {
   return (
     <canvas
       height={600}
-      width={900}
+      width={2000}
       ref={canvasRef}
     />
   );

@@ -10,9 +10,20 @@
           "children": [
             {
               "title": "Risk",
-              "size": 2
+              "size": 2,
+              "links": ["R&D"]
+            },
+            {
+              "title": "Platform",
+              "size": 2,
+              "links": ["R&D"]
             }
           ]
+        },
+        {
+          "title": "Strategy",
+          "size": 2,
+          "children": ["Technical", "Testing2"]
         }
       ]
     },
@@ -24,6 +35,118 @@
           "title": "R&D",
           "size": 2,
           "children": []
+        },
+        {
+          "title": "Technical",
+          "size": 2,
+          "links": ["Strategy"]
+        },
+        {
+          "title": "Initial Architecture",
+          "size": 1,
+          "children": []
+        },
+        {
+          "title": "Testing2",
+          "size": 2,
+          "links": ["Strategy"]
+        }
+      ]
+    },
+    {
+      "title": "Development",
+      "size": 0,
+      "children": [
+        {
+          "title": "UI/UX",
+          "size": 2,
+          "children": []
+        },
+        {
+          "title": "Component Implementation",
+          "size": 1,
+          "children": [
+            {
+              "title": "Testing",
+              "size": 2,
+              "links": ["Final Testing"]
+            }
+          ]
+        },
+        {
+          "title": "Dev Ops",
+          "size": 1,
+          "children": []
+        }
+      ]
+    },
+    {
+      "title": "Release",
+      "size": 0,
+      "children": [
+        {
+          "title": "Deployment",
+          "size": 1,
+          "children": [
+            {
+              "title": "Alpha",
+              "size": 2,
+              "children": [
+                {
+                  "title": "Beta",
+                  "size": 2,
+                  "children": [
+                    {
+                      "title": "Final",
+                      "size": 2,
+                      "links": ["Monitoring"]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Final Testing",
+          "size": 2,
+          "links": ["Address Bugs", "Testing"]
+        },
+        {
+          "title": "Address Bugs",
+          "size": 1,
+          "links": ["Final Testing"]
+        },
+        {
+          "title": "Push Fixes",
+          "size": 2,
+          "links": ["Review Feedback"]
+        }
+      ]
+    },
+    {
+      "title": "Maintenance",
+      "size": 0,
+      "children": [
+        {
+          "title": "Monitoring",
+          "size": 1,
+          "links": ["Final"],
+          "children": [
+            {
+              "title": "Speed",
+              "size": 2
+            },
+            {
+              "title": "Logs",
+              "size": 2
+            }
+          ]
+        },
+        {
+          "title": "Review Feedback",
+          "size": 1,
+          "links": ["Push Fixes"]
         }
       ]
     }

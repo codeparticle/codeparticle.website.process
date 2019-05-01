@@ -1,82 +1,88 @@
 import { forceSimulation, forceLink } from 'd3-force';
 
 import {
-  ROOT_NODES_DISTANCE,
   SIZES,
-  INITIAL_X,
   TICKS_PER_STAGE,
-  DISTANCE_TICK_BASE_DIVISOR,
 } from './constants';
-import { normalizeDisplacement, parseTreeData } from './utils';
+import {
+  normalizeDisplacement,
+  parseTreeData,
+} from './utils';
 
-const getTransitionStage = (canvas, transitionStages, stage) => {
-  if (stage === 0) {
-    const node = transitionStages[0].nodes[0];
-
-    node.x = INITIAL_X;
-    node.y = canvas.height / 2;
-
-    return {
-      nodes: transitionStages[0].nodes,
-      links: [],
-    };
-  }
-
-  const transitionStage = transitionStages[stage];
-
-  if (!transitionStage) {
-    return null;
-  }
-
-  transitionStage.nodes.forEach((node) => {
-    if (node.rootNode) {
-      node.distanceToTravel = ROOT_NODES_DISTANCE;
-    } else {
-      node.distanceToTravel = (SIZES[node.parent.size] * 1.5) + SIZES[node.size];
-    }
-
-    node.x = node.parent.x;
-    node.y = node.parent.y;
-    node.dx = 0;
-    node.dy = 0;
-
-    if (node.rootNode) {
-      node.dx = 1;
-    } else if (node.level === 1) {
-      node.dy = -1;
-    } else {
-      node.dx = 1;
-      node.dy = -1;
-    }
-
-    normalizeDisplacement(node);
-  });
-
-  return transitionStage;
-};
+const getLerpingValue = stageTicksLeft => (TICKS_PER_STAGE - stageTicksLeft) / TICKS_PER_STAGE;
+let windowResizeListener = null;
+let windowScrollListener = null;
 
 const runSimulation = (canvas, data) => {
   const context = canvas.getContext('2d');
   const { height, width } = canvas;
-  const { links, nodes, transitionStages } = parseTreeData(data);
+  const { links, nodes } = parseTreeData(data, canvas);
+  let canvasBoundingBox = canvas.getBoundingClientRect();
+  let nodesAnimating = [];
+  let rootNodesToAnimateFromNextStage = [];
+  let linksAnimating = [];
 
-  const firstTransitionStage = getTransitionStage(canvas, transitionStages, 0);
-  const stageNodes = firstTransitionStage.nodes.slice();
-  const stageLinks = firstTransitionStage.links.slice();
-  let currentStage = 0;
-  let stageTicksLeft = TICKS_PER_STAGE;
-  let nodesForCurrentStage = [];
+  // Returns true if the root node has been visible on the screen at least once
+  const canNodeBeDrawn = (node) => {
+    const { root } = node;
+    const { left } = canvasBoundingBox;
 
-  const drawLink = (d) => {
-    context.moveTo(d.source.x, d.source.y);
-    context.lineTo(d.target.x, d.target.y);
+    if (node.rootNode || (node.root && node.root.hasBeenVisible)) {
+      return true;
+    }
+
+    if (root && root.animationFinished && left + root.x >= 0 && left + root.x <= window.innerWidth) {
+      root.hasBeenVisible = true;
+
+      return true;
+    }
+
+    return false;
   };
 
+  if (nodes && nodes.length) {
+    for (let i = 0; i < nodes.length; i += 1) {
+      const node = nodes[i];
+
+      if (node.rootNode && canNodeBeDrawn(node)) {
+        nodesAnimating.push(node);
+
+        break;
+      }
+    }
+  }
+
+  const stageNodes = nodesAnimating.slice();
+  const stageLinks = [];
+  let stageTicksLeft = TICKS_PER_STAGE;
+
+  // Draws a line between twp nodes
+  const drawLink = (d, lerp = 1) => {
+    context.moveTo(d.source.x, d.source.y);
+
+    let { x, y } = d.target;
+
+    if (lerp !== 1) {
+      const distanceVector = {
+        x: x - d.source.x,
+        y: y - d.source.y,
+      };
+      const distance = Math.sqrt((distanceVector.x ** 2) + (distanceVector.y ** 2));
+
+      normalizeDisplacement(distanceVector, distance * lerp, '');
+      x = d.source.x + distanceVector.x;
+      y = d.source.y + distanceVector.y;
+    }
+
+    context.lineTo(x, y);
+  };
+
+  // Draws a node (circle)
   const drawNode = (d) => {
     let radius = SIZES[d.size];
 
-    if (currentStage === 0) {
-      const ticksRatio = (TICKS_PER_STAGE - stageTicksLeft) / TICKS_PER_STAGE;
+    if (nodesAnimating.includes(d)) {
+      const ticksRatio = getLerpingValue(stageTicksLeft);
 
       radius *= ticksRatio;
     }
@@ -86,19 +92,23 @@ const runSimulation = (canvas, data) => {
   };
 
   const onProcessTick = () => {
-    nodesForCurrentStage.forEach((node) => {
-      const pixelsPerTick = node.distanceToTravel / DISTANCE_TICK_BASE_DIVISOR;
+    nodesAnimating.forEach((node) => {
+      const ticksRatio = getLerpingValue(stageTicksLeft);
 
-      node.vx = node.dx * pixelsPerTick;
-      node.vy = node.dy * pixelsPerTick;
+      if (node.parent) {
+        node.x = node.parent.x + ((node.targetX - node.parent.x) * ticksRatio);
+        node.y = node.parent.y + ((node.targetY - node.parent.y) * ticksRatio);
+      }
     });
   };
 
+  // Called every frame of the simulation to draw the nodes and links between them
   const onDrawTick = () => {
     context.clearRect(0, 0, width, height);
 
     context.beginPath();
-    stageLinks.forEach(drawLink);
+    stageLinks.forEach(d => drawLink(d));
+    linksAnimating.forEach(d => drawLink(d, getLerpingValue(stageTicksLeft)));
     context.strokeStyle = '#aaa';
     context.stroke();
 
@@ -107,41 +117,123 @@ const runSimulation = (canvas, data) => {
     context.fill();
   };
 
+  // Called when an animation step has been finished
   const onStageFinished = () => {
-    const transitionStage = getTransitionStage(canvas, transitionStages, currentStage);
+    const previousNodesAnimating = nodesAnimating.concat(...rootNodesToAnimateFromNextStage);
+    const newLinks = [];
 
-    nodesForCurrentStage.forEach((node) => {
-      node.vx = 0;
-      node.vy = 0;
+    canvasBoundingBox = canvas.getBoundingClientRect();
+    stageLinks.push(...linksAnimating);
+    nodesAnimating = [];
+    linksAnimating = [];
+    rootNodesToAnimateFromNextStage = [];
+
+    const animateNode = (...nodesToAnimate) => {
+      nodesToAnimate.forEach((node) => {
+        if (!node.animating && !node.animationFinished && canNodeBeDrawn(node)) {
+          nodesAnimating.push(node);
+        }
+      });
+    };
+
+    previousNodesAnimating.forEach((node) => {
+      node.animating = false;
+      node.animationFinished = true;
+
+      if (node.rootNode) {
+        if (node.next) {
+          animateNode(node.next);
+        }
+
+        if (node.last && !node.last.animationFinished && !node.last.animating) {
+          animateNode(node.last);
+        }
+      }
+
+      if (node.children) {
+        animateNode(...node.children);
+      }
+
+      if (node.parent && !node.parent.animationFinished && !node.parent.animating) {
+        animateNode(node.parent);
+      }
+
+      if (node.links) {
+        node.links.forEach((link) => {
+          if (!link.external && (nodesAnimating.includes(link.target) || nodesAnimating.includes(link.source))) {
+            newLinks.push(link);
+          } else if (link.source.animationFinished && link.target.animationFinished) {
+            linksAnimating.push(link);
+          }
+        });
+      }
     });
 
-    if (transitionStage) {
-      nodesForCurrentStage = transitionStage.nodes;
+    nodesAnimating.forEach((node) => {
+      node.animating = true;
+      node.targetX = node.fx;
+      node.targetY = node.fy;
+      node.fx = null;
+      node.fy = null;
+      node.x = node.parent.x;
+      node.y = node.parent.y;
+    });
 
-      stageNodes.push(...transitionStage.nodes);
-      stageLinks.push(...transitionStage.links);
-    } else {
-      nodesForCurrentStage = [];
-    }
+    stageNodes.push(...nodesAnimating);
+    stageLinks.push(...newLinks);
 
     onProcessTick();
   };
 
-  return forceSimulation(nodes).force('link', forceLink(links).id(d => d.id).strength(0)).on('tick', () => {
+  const simulation = forceSimulation(nodes).force('link', forceLink(links).id(d => d.id).strength(0)).on('tick', () => {
     onProcessTick();
     onDrawTick();
 
-    if (currentStage < transitionStages.length) {
+    if (nodesAnimating.length || linksAnimating.length) {
       stageTicksLeft -= 1;
 
       if (stageTicksLeft <= 0) {
-        currentStage += 1;
         stageTicksLeft = TICKS_PER_STAGE;
 
         onStageFinished();
       }
     }
   });
+
+  // Checks for newly visible root nodes that haven't been animated
+  const checkForNewNodes = () => {
+    rootNodesToAnimateFromNextStage = [];
+
+    nodes.forEach((node) => {
+      if (node.rootNode && !node.hasBeenVisible && node.animationFinished) {
+        rootNodesToAnimateFromNextStage.push(node);
+      }
+    });
+
+    if (!nodesAnimating.length && !linksAnimating.length) {
+      onStageFinished();
+    }
+
+    simulation.alpha(1);
+    simulation.restart();
+  };
+
+  if (windowResizeListener) {
+    window.removeEventListener('resize', windowResizeListener);
+    window.removeEventListener('scroll', windowScrollListener, true);
+  }
+
+  window.addEventListener('resize', function _onWindowResize() {
+    windowResizeListener = _onWindowResize;
+    checkForNewNodes();
+  });
+
+  window.addEventListener('scroll', function _onWindowScroll() {
+    windowScrollListener = _onWindowScroll;
+    checkForNewNodes();
+  }, true);
+
+  return simulation;
 };
 
 export { runSimulation };
