@@ -5,17 +5,20 @@ import {
   DOTTED_BORDER_THICKNESS,
   FONT_SIZES,
   LINK_BASE_COLOR,
+  SCROLL_LERPING_SMOOTH,
   SOLID_BORDER_THICKNESS,
   SIZES,
   TEXT_FONT_FAMILY,
   TEXT_PADDING,
   TICKS_PER_STAGE,
+  X_AXIS_PADDING,
 } from './constants';
 import {
   normalizeDisplacement,
   parseTreeData,
 } from './utils';
 
+let canvasWheelListener = null;
 let windowResizeListener = null;
 let windowScrollListener = null;
 
@@ -24,20 +27,24 @@ let windowScrollListener = null;
  * @param {HTMLElement} canvas - Canvas to play the animation on
  * @param {Object} data - Data object to parse and generate nodes from
  * @param {Object} options - {
+ *  @param {boolean} disableCanvasScrolling - When true, the canvas will not have a scroll event that intercepts the browsers' scroll
  *  @param {string} fontFamily - Font family of the text on top of the nodes
  *  @param {number} fontSize - Font size of the text on top of the nodes
  *  @param {string} linkLineColor - Color of the dotted line connecting the nodes
  *  @param {array} nodeSizes - Array of 3 elements for each node size
+ *  @param {number} scrollSensitivity - Multiplier for the speed of the canvas scrolling
  *  @param {number} speedModifier - Multiplier for the speed of the animation
  * }
  * @returns {Object} simulation - returns the simulation object from d3-force library which has some useful util functions
  */
 const runSimulation = (canvas, data, options = {}) => {
   const {
+    disableCanvasScrolling = false,
     fontFamily = TEXT_FONT_FAMILY,
     fontSizes = FONT_SIZES,
     linkLineColor = LINK_BASE_COLOR,
     nodeSizes = SIZES,
+    scrollSensitivity = 1,
     speedModifier = 1,
   } = options;
   const ticksPerStage = Math.ceil(speedModifier * TICKS_PER_STAGE);
@@ -48,7 +55,14 @@ const runSimulation = (canvas, data, options = {}) => {
   let nodesAnimating = [];
   let rootNodesToAnimateFromNextStage = [];
   let linksAnimating = [];
-  const getLerpingValue = stageTicksLeft => (ticksPerStage - stageTicksLeft) / ticksPerStage;
+  let offsetX = 0;
+  let targetOffsetX = 0;
+  let rightMostNodeX = 0;
+  const getLerpingValue = stageTicksLeft => Math.min((ticksPerStage - stageTicksLeft) / ticksPerStage, 1);
+
+  (nodes || []).forEach((node) => {
+    rightMostNodeX = Math.max(rightMostNodeX, node.fx + node.radius);
+  });
 
   // Returns true if the root node has been visible on the screen at least once
   const canNodeBeDrawn = (node) => {
@@ -59,10 +73,14 @@ const runSimulation = (canvas, data, options = {}) => {
       return true;
     }
 
-    if (root && root.animationFinished && left + root.x >= 0 && left + root.x <= window.innerWidth) {
-      root.hasBeenVisible = true;
+    if (root) {
+      const leftMostX = left + root.x + offsetX;
 
-      return true;
+      if (root.animationFinished && leftMostX >= 0 && leftMostX <= window.innerWidth) {
+        root.hasBeenVisible = true;
+
+        return true;
+      }
     }
 
     return false;
@@ -125,6 +143,16 @@ const runSimulation = (canvas, data, options = {}) => {
 
   nodesAnimating.forEach(pushStageNode);
 
+  const checkForNewNodes = () => {
+    rootNodesToAnimateFromNextStage = [];
+
+    nodes.forEach((node) => {
+      if (node.rootNode && !node.hasBeenVisible && node.animationFinished) {
+        rootNodesToAnimateFromNextStage.push(node);
+      }
+    });
+  };
+
   // Draws a line between twp nodes
   const drawLink = (d, lerp = 1) => {
     let { x, y } = d.target;
@@ -161,11 +189,11 @@ const runSimulation = (canvas, data, options = {}) => {
     };
 
     context.moveTo(
-      d.source.x + sourceDisplacement.x + borderDisplacement.x,
+      offsetX + d.source.x + sourceDisplacement.x + borderDisplacement.x,
       d.source.y + sourceDisplacement.y + borderDisplacement.y,
     );
     context.lineTo(
-      x - targetDisplacement.x - borderDisplacement.x,
+      offsetX + x - targetDisplacement.x - borderDisplacement.x,
       y - targetDisplacement.y - borderDisplacement.y,
     );
   };
@@ -180,8 +208,8 @@ const runSimulation = (canvas, data, options = {}) => {
       currentRadius += extraRadius;
     }
 
-    context.moveTo(d.x + currentRadius, d.y);
-    context.arc(d.x, d.y, currentRadius, 0, 2 * Math.PI, false);
+    context.moveTo(offsetX + d.x + currentRadius, d.y);
+    context.arc(offsetX + d.x, d.y, currentRadius, 0, 2 * Math.PI, false);
   };
 
   // Draws text inside a node
@@ -211,7 +239,7 @@ const runSimulation = (canvas, data, options = {}) => {
     }
 
     const drawTextWithOffset = (text, offset) => {
-      context.fillText(text, d.x, d.y + offset);
+      context.fillText(text, offsetX + d.x, d.y + offset);
     };
     const totalHeight = allLines.length * fontSize;
     const halfHeight = totalHeight / 4;
@@ -224,6 +252,15 @@ const runSimulation = (canvas, data, options = {}) => {
   };
 
   const onProcessTick = () => {
+    const offsetXChange = (targetOffsetX - offsetX) * SCROLL_LERPING_SMOOTH;
+
+    if (offsetXChange > 2) {
+      offsetX += offsetXChange;
+    } else {
+      offsetX = targetOffsetX;
+      checkForNewNodes();
+    }
+
     nodesAnimating.forEach((node) => {
       const ticksRatio = getLerpingValue(stageTicksLeft);
 
@@ -403,48 +440,67 @@ const runSimulation = (canvas, data, options = {}) => {
     onDrawTick();
 
     if (nodesAnimating.length || linksAnimating.length) {
-      stageTicksLeft -= 1;
-
       if (stageTicksLeft <= 0) {
         stageTicksLeft = ticksPerStage;
 
         onStageFinished();
       }
+
+      stageTicksLeft -= 1;
     }
   });
 
-  // Checks for newly visible root nodes that haven't been animated
-  const checkForNewNodes = () => {
-    rootNodesToAnimateFromNextStage = [];
+  const reheatSimulation = () => {
+    simulation.alpha(1);
+    simulation.restart();
+  };
 
-    nodes.forEach((node) => {
-      if (node.rootNode && !node.hasBeenVisible && node.animationFinished) {
-        rootNodesToAnimateFromNextStage.push(node);
-      }
-    });
+  // Checks for newly visible root nodes that haven't been animated
+  const onWindowResizeOrScroll = () => {
+    checkForNewNodes();
 
     if (!nodesAnimating.length && !linksAnimating.length) {
       onStageFinished();
     }
 
-    simulation.alpha(1);
-    simulation.restart();
+    reheatSimulation();
   };
 
   if (windowResizeListener) {
     window.removeEventListener('resize', windowResizeListener);
+  }
+
+  if (windowScrollListener) {
     window.removeEventListener('scroll', windowScrollListener, true);
+  }
+
+  if (canvasWheelListener) {
+    canvas.removeEventListener('wheel', canvasWheelListener, false);
   }
 
   window.addEventListener('resize', function _onWindowResize() {
     windowResizeListener = _onWindowResize;
-    checkForNewNodes();
+    onWindowResizeOrScroll();
   });
 
   window.addEventListener('scroll', function _onWindowScroll() {
     windowScrollListener = _onWindowScroll;
-    checkForNewNodes();
+    onWindowResizeOrScroll();
   }, true);
+
+  if (!disableCanvasScrolling) {
+    canvas.addEventListener('wheel', function _onCanvasWheel(event) {
+      event.preventDefault();
+      canvasWheelListener = _onCanvasWheel;
+
+      const maxX = rightMostNodeX - window.innerWidth + X_AXIS_PADDING;
+
+      targetOffsetX = Math.max(Math.min(targetOffsetX - (event.deltaX * 0.5 * scrollSensitivity), 0), -maxX);
+      reheatSimulation();
+
+      return false;
+    }, false);
+  }
 
   return simulation;
 };
