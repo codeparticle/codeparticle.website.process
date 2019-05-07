@@ -1,7 +1,7 @@
 {
   "name": "codeparticle.website.process",
-  "version": "0.1.1",
-  "private": true,
+  "version": "0.2.1",
+  "license": "ISC",
   "author": {
     "name": "codeparticle",
     "email": "web-accounts@codeparticle.com"

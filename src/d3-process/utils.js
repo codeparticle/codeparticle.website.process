@@ -3,7 +3,6 @@ import {
   NODE_MARGIN,
   ROOT_NODE_INITIAL_X_POSITION,
   ROOT_NODE_X_DISTANCE,
-  SIZES,
 } from './constants';
 
 // Max iterations to go in a full circle when calculating position around a parent
@@ -25,9 +24,6 @@ const getOtherNodeFromLink = (link, node) => {
   return link.source;
 };
 
-// Gets the minimum distance from a child node to a parent node with no space in-between
-const getChildNodeDistance = node => SIZES[node.parent.size] + SIZES[node.size];
-
 // Normalizes a vector and multiplies it by a scale
 const normalizeDisplacement = (point, scale = 1, propertyPrefix = 'd') => {
   const xProperty = `${propertyPrefix}x`;
@@ -42,55 +38,58 @@ const normalizeDisplacement = (point, scale = 1, propertyPrefix = 'd') => {
   }
 };
 
-// Assigns the proper properties to the child nodes
-const assignChildren = (nodes, links, parent, children, level = 1, rootNode = null) => {
-  nodes.push(parent);
-
-  if (children) {
-    const childNodes = children.map((child, index) => {
-      const nodeLinks = [];
-
-      if (child.children) {
-        child.children.forEach((subChild) => {
-          nodeLinks.push(getLink(child.title, subChild.title));
-        });
-      }
-
-      links.push(...nodeLinks);
-
-      return {
-        id: child.title,
-        siblingIndex: index,
-        size: child.size,
-        radius: SIZES[child.size],
-        parent,
-        root: rootNode || parent,
-        level,
-        children: child.children,
-        links: nodeLinks,
-        extraLinks: child.links,
-      };
-    });
-
-    childNodes.forEach((childNode, index) => {
-      childNode.last = index === 0 ? null : childNodes[index - 1];
-      childNode.next = index === childNodes.length - 1 ? null : childNodes[index + 1];
-
-      assignChildren(nodes, links, childNode, childNode.children, level + 1, rootNode || parent);
-    });
-
-    parent.children = childNodes;
-  }
-};
-
 // Main function to parse the tree data received into nodes and links
-const parseTreeData = (data, canvas) => {
+const parseTreeData = (data, canvas, { nodeSizes }) => {
   if (!data || !data.rootNodes || !data.rootNodes.length) {
     return null;
   }
 
+  // Gets the minimum distance from a child node to a parent node with no space in-between
+  const getChildNodeDistance = node => nodeSizes[node.parent.size] + nodeSizes[node.size];
+
+  // Assigns the proper properties to the child nodes
+  const assignChildren = (nodes, links, parent, children, level = 1, rootNode = null) => {
+    nodes.push(parent);
+
+    if (children) {
+      const childNodes = children.map((child, index) => {
+        const nodeLinks = [];
+
+        if (child.children) {
+          child.children.forEach((subChild) => {
+            nodeLinks.push(getLink(child.title, subChild.title));
+          });
+        }
+
+        links.push(...nodeLinks);
+
+        return {
+          id: child.title,
+          siblingIndex: index,
+          size: child.size,
+          radius: nodeSizes[child.size],
+          parent,
+          root: rootNode || parent,
+          level,
+          children: child.children,
+          links: nodeLinks,
+          extraLinks: child.links,
+        };
+      });
+
+      childNodes.forEach((childNode, index) => {
+        childNode.last = index === 0 ? null : childNodes[index - 1];
+        childNode.next = index === childNodes.length - 1 ? null : childNodes[index + 1];
+
+        assignChildren(nodes, links, childNode, childNode.children, level + 1, rootNode || parent);
+      });
+
+      parent.children = childNodes;
+    }
+  };
+
   const nodesByRootIndex = {};
-  const nodesByName = {};
+  const nodesById = {};
   const nodes = [];
   const links = [];
 
@@ -110,9 +109,10 @@ const parseTreeData = (data, canvas) => {
 
     const rootNode = {
       id: rootNodeData.title,
+      color: rootNodeData.color,
       siblingIndex: index,
       size: rootNodeData.size,
-      radius: SIZES[rootNodeData.size],
+      radius: nodeSizes[rootNodeData.size],
       rootNode: true,
       links: rootNodeLinks,
       extraLinks: rootNodeData.links,
@@ -125,7 +125,7 @@ const parseTreeData = (data, canvas) => {
 
   // Assign next/last/parent to root nodes
   nodes.forEach((node) => {
-    nodesByName[node.id] = node;
+    nodesById[node.id] = node;
 
     if (node.rootNode) {
       node.next = nodesByRootIndex[node.siblingIndex + 1] || null;
@@ -138,7 +138,7 @@ const parseTreeData = (data, canvas) => {
   nodes.forEach((node) => {
     if (node.extraLinks) {
       node.extraLinks.forEach((id) => {
-        const linkedNode = nodesByName[id];
+        const linkedNode = nodesById[id];
 
         if (linkedNode.extraLinks) {
           linkedNode.extraLinks.splice(linkedNode.extraLinks.indexOf(node.id), 1);
@@ -176,7 +176,7 @@ const parseTreeData = (data, canvas) => {
     // Get all the lines associated with the links
     if (nodeToCheck.links) {
       nodeToCheck.links.forEach((link) => {
-        const linkedNode = nodesByName[getOtherNodeFromLink(link, nodeToCheck)];
+        const linkedNode = nodesById[getOtherNodeFromLink(link, nodeToCheck)];
 
         if (linkedNode.parent !== link.parent && linkedNode.positionAssigned) {
           let minX = nodeToCheck.fx;
@@ -327,7 +327,7 @@ const parseTreeData = (data, canvas) => {
       // Change node direction to match it with an external linked node
       // (Such as putting both on the top to make their lines less likely to cross the middle or other nodes)
       for (let i = 0; i < node.links.length; i += 1) {
-        const linkedNode = nodesByName[getOtherNodeFromLink(node.links[i], node)];
+        const linkedNode = nodesById[getOtherNodeFromLink(node.links[i], node)];
 
         if (linkedNode.root !== node.root && !linkedNode.rootNode && !node.rootNode && linkedNode.positionAssigned) {
           if (!linkedNode.root.positionAssigned) {
@@ -366,7 +366,7 @@ const parseTreeData = (data, canvas) => {
 
       // Fix position of this node based on the linked nodes
       node.links.forEach((link) => {
-        const linkedNode = nodesByName[getOtherNodeFromLink(link, node)];
+        const linkedNode = nodesById[getOtherNodeFromLink(link, node)];
         const halfCanvasHeight = canvas.height / 2;
 
         // Try to move nodes with the same parent who are linked together closer together
