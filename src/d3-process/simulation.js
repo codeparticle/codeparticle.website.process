@@ -493,7 +493,7 @@ const runSimulation = (canvas, data, options = {}) => {
       event.preventDefault();
       canvasWheelListener = _onCanvasWheel;
 
-      const maxX = rightMostNodeX - window.innerWidth + X_AXIS_PADDING;
+      const maxX = rightMostNodeX - window.innerWidth + canvas.getBoundingClientRect().left + X_AXIS_PADDING;
 
       targetOffsetX = Math.max(Math.min(targetOffsetX - (event.deltaX * 0.5 * scrollSensitivity), 0), -maxX);
       reheatSimulation();
