@@ -95,7 +95,7 @@
   "scripts": {
     "start": "node src/server",
     "dev": "npm-run-all -p watch-css start-js",
-    "prepublish": "NODE_ENV=production ./node_modules/.bin/webpack --config ./config/webpack.config.publish.js",
+    "prepublish": "NODE_ENV=production ./node_modules/.bin/webpack --config ./config/webpack.config.publish.js && cp ./.npmrc ./build/.npmrc",
     "publish": "cd build && npm publish",
     "start-js": "node scripts/start.js",
     "build-css": "rm -rf ./public/css && ./node_modules/.bin/node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o ./public/css --output-style expanded",
