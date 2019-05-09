@@ -15,3 +15,8 @@ export const SOLID_BORDER_THICKNESS = 3;
 export const TEXT_FONT_FAMILY = 'Helvetica';
 export const TEXT_PADDING = 10;
 export const TICKS_PER_STAGE = 25;
+
+export const EVENT_TYPES = {
+  SCROLL: 'scroll',
+  SELECTED_ROOT_NODE_CHANGE: 'selectedRootNodeChange',
+};
