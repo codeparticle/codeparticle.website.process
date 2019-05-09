@@ -3,6 +3,7 @@ import { forceSimulation, forceLink } from 'd3-force';
 import {
   BORDER_DISTANCE,
   DOTTED_BORDER_THICKNESS,
+  EVENT_TYPES,
   FONT_SIZES,
   LINK_BASE_COLOR,
   SCROLL_LERPING_SMOOTH,
@@ -14,6 +15,7 @@ import {
   X_AXIS_PADDING,
 } from './constants';
 import {
+  getLeftMostChildX,
   normalizeDisplacement,
   parseTreeData,
 } from './utils';
@@ -36,6 +38,12 @@ let windowScrollListener = null;
  *  @param {number} speedModifier - Multiplier for the speed of the animation
  * }
  * @returns {Object} simulation - returns the simulation object from d3-force library which has some useful util functions
+ * The following extra functions are available within the simulation object:
+ * getSelectedRootNode - gets the currently selected root node (Left-most root node visible on the screen)
+ * setSelectedRootNode - sets the currently selected root node and scrolls to it
+ * resetScrolling - resets the scrolling to the minimum position
+ * addListener - adds an event listeners
+ * removeListener - removes an event listener
  */
 const runSimulation = (canvas, data, options = {}) => {
   const {
@@ -49,8 +57,12 @@ const runSimulation = (canvas, data, options = {}) => {
   } = options;
   const ticksPerStage = Math.ceil(speedModifier * TICKS_PER_STAGE);
   const context = canvas.getContext('2d');
-  const { height, width } = canvas;
   const { links, nodes } = parseTreeData(data, canvas, { nodeSizes });
+  const listeners = {
+    [EVENT_TYPES.SCROLL]: [],
+    [EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE]: [],
+  };
+  let selectedRootNode = null;
   let canvasBoundingBox = canvas.getBoundingClientRect();
   let nodesAnimating = [];
   let rootNodesToAnimateFromNextStage = [];
@@ -58,11 +70,60 @@ const runSimulation = (canvas, data, options = {}) => {
   let offsetX = 0;
   let targetOffsetX = 0;
   let rightMostNodeX = 0;
+  let bottomMostNodeY = 0;
+  let offsetY = 0;
+  let targetOffsetY = 0;
+  let scrolling = false;
+  let scrollingStageFinishedTimeout = null;
   const getLerpingValue = stageTicksLeft => Math.min((ticksPerStage - stageTicksLeft) / ticksPerStage, 1);
 
   (nodes || []).forEach((node) => {
     rightMostNodeX = Math.max(rightMostNodeX, node.fx + node.radius);
+    bottomMostNodeY = Math.max(bottomMostNodeY, node.fy + node.radius);
   });
+
+  const setOffsets = (setToMin = false, {
+    deltaX = 0,
+    deltaY = 0,
+  } = {}) => {
+    const {
+      left: parentLeft,
+      top: parentTop,
+    } = canvas.parentElement.getBoundingClientRect();
+    const {
+      left,
+      top,
+    } = canvas.getBoundingClientRect();
+    const sensitivity = scrollSensitivity / 2;
+    let minX = left - parentLeft;
+    let minY = top - parentTop;
+    let maxX = rightMostNodeX - window.innerWidth + left + X_AXIS_PADDING;
+    let maxY = bottomMostNodeY - canvas.parentElement.offsetHeight + X_AXIS_PADDING;
+
+    if (top > parentTop) {
+      minY = 0;
+      maxY = 0;
+    }
+
+    if (left > parentLeft) {
+      minX = 0;
+      maxX = 0;
+    }
+
+    if (setToMin) {
+      targetOffsetX = -minX;
+      targetOffsetY = -minY;
+      offsetX = targetOffsetX;
+      offsetY = targetOffsetY;
+    } else {
+      targetOffsetX = Math.max(Math.min(targetOffsetX - (deltaX * sensitivity), -minX), -maxX);
+      targetOffsetY = Math.max(Math.min(targetOffsetY - (deltaY * sensitivity), -minY), -maxY);
+    }
+  };
+
+  if (!disableCanvasScrolling) {
+    setOffsets(true);
+  }
 
   // Returns true if the root node has been visible on the screen at least once
   const canNodeBeDrawn = (node) => {
@@ -92,6 +153,7 @@ const runSimulation = (canvas, data, options = {}) => {
 
       if (node.rootNode && canNodeBeDrawn(node)) {
         nodesAnimating.push(node);
+        selectedRootNode = node;
 
         break;
       }
@@ -144,13 +206,35 @@ const runSimulation = (canvas, data, options = {}) => {
   nodesAnimating.forEach(pushStageNode);
 
   const checkForNewNodes = () => {
+    const nodeHasBeenDrawn = selectedRootNode.animating || selectedRootNode.animationFinished;
+    let foundFirstRootNodeVisible = false;
+    let previousSelectedRootNode = selectedRootNode;
+
+    canvasBoundingBox = canvas.getBoundingClientRect();
     rootNodesToAnimateFromNextStage = [];
 
     nodes.forEach((node) => {
-      if (node.rootNode && !node.hasBeenVisible && node.animationFinished) {
-        rootNodesToAnimateFromNextStage.push(node);
+      const nodeIsVisibleOnScreen = node.x + offsetX >= canvasBoundingBox.left;
+
+      if (node.rootNode) {
+        if (!foundFirstRootNodeVisible && nodeIsVisibleOnScreen && nodeHasBeenDrawn) {
+          foundFirstRootNodeVisible = true;
+          selectedRootNode = node;
+        }
+
+        if (!node.hasBeenVisible && node.animationFinished) {
+          rootNodesToAnimateFromNextStage.push(node);
+        }
       }
     });
+
+    if (previousSelectedRootNode !== selectedRootNode) {
+      previousSelectedRootNode = selectedRootNode;
+
+      listeners[EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE].forEach((callback) => {
+        callback(selectedRootNode);
+      });
+    }
   };
 
   // Draws a line between twp nodes
@@ -163,7 +247,7 @@ const runSimulation = (canvas, data, options = {}) => {
     const distance = Math.sqrt((distanceVector.x ** 2) + (distanceVector.y ** 2));
 
     if (distance < d.source.currentRadius + d.target.currentRadius) {
-      return;
+      return null;
     }
 
     normalizeDisplacement(distanceVector, 1, '');
@@ -188,14 +272,19 @@ const runSimulation = (canvas, data, options = {}) => {
       y: d.target.currentRadius * distanceVector.y,
     };
 
-    context.moveTo(
-      offsetX + d.source.x + sourceDisplacement.x + borderDisplacement.x,
-      d.source.y + sourceDisplacement.y + borderDisplacement.y,
-    );
-    context.lineTo(
-      offsetX + x - targetDisplacement.x - borderDisplacement.x,
-      y - targetDisplacement.y - borderDisplacement.y,
-    );
+    const start = {
+      x: offsetX + d.source.x + sourceDisplacement.x + borderDisplacement.x,
+      y: offsetY + d.source.y + sourceDisplacement.y + borderDisplacement.y,
+    };
+    const end = {
+      x: offsetX + x - targetDisplacement.x - borderDisplacement.x,
+      y: offsetY + y - targetDisplacement.y - borderDisplacement.y,
+    };
+
+    context.moveTo(start.x, start.y);
+    context.lineTo(end.x, end.y);
+
+    return { start, end };
   };
 
   // Draws a node (circle)
@@ -208,8 +297,8 @@ const runSimulation = (canvas, data, options = {}) => {
       currentRadius += extraRadius;
     }
 
-    context.moveTo(offsetX + d.x + currentRadius, d.y);
-    context.arc(offsetX + d.x, d.y, currentRadius, 0, 2 * Math.PI, false);
+    context.moveTo(offsetX + d.x + currentRadius, offsetY + d.y);
+    context.arc(offsetX + d.x, offsetY + d.y, currentRadius, 0, 2 * Math.PI, false);
   };
 
   // Draws text inside a node
@@ -239,7 +328,7 @@ const runSimulation = (canvas, data, options = {}) => {
     }
 
     const drawTextWithOffset = (text, offset) => {
-      context.fillText(text, offsetX + d.x, d.y + offset);
+      context.fillText(text, offsetX + d.x, offsetY + d.y + offset);
     };
     const totalHeight = allLines.length * fontSize;
     const halfHeight = totalHeight / 4;
@@ -248,119 +337,6 @@ const runSimulation = (canvas, data, options = {}) => {
       const offset = (index / allLines.length) * totalHeight;
 
       drawTextWithOffset(line, allLines.length > 1 ? offset - halfHeight : 0);
-    });
-  };
-
-  const onProcessTick = () => {
-    const offsetXChange = (targetOffsetX - offsetX) * SCROLL_LERPING_SMOOTH;
-
-    if (offsetXChange > 2) {
-      offsetX += offsetXChange;
-    } else {
-      offsetX = targetOffsetX;
-      checkForNewNodes();
-    }
-
-    nodesAnimating.forEach((node) => {
-      const ticksRatio = getLerpingValue(stageTicksLeft);
-
-      if (node.parent) {
-        node.x = node.parent.x + ((node.targetX - node.parent.x) * ticksRatio);
-        node.y = node.parent.y + ((node.targetY - node.parent.y) * ticksRatio);
-      }
-    });
-  };
-
-  // Called every frame of the simulation to draw the nodes and links between them
-  const onDrawTick = () => {
-    context.clearRect(0, 0, width, height);
-
-    stageNodesByRoot.sortedRoots.forEach((rootNode) => {
-      const nodesToDraw = stageNodesByRoot[rootNode.id];
-
-      nodesToDraw.forEach((node) => {
-        let radius = nodeSizes[node.size];
-
-        if (nodesAnimating.includes(node)) {
-          const ticksRatio = getLerpingValue(stageTicksLeft);
-
-          radius *= ticksRatio;
-        }
-
-        node.currentRadius = radius;
-      });
-    });
-
-    // Draw all the regular dashed lines
-    context.beginPath();
-    stageLinksByType.normal.forEach(d => drawLink(d));
-    linksAnimating.forEach(d => drawLink(d, getLerpingValue(stageTicksLeft)));
-    // Fix the bug where canvas stretches or doesn't draw the last line properly
-    context.moveTo(0, 0);
-    context.lineTo(0, 0);
-    context.setLineDash([4, 3]);
-    context.strokeStyle = linkLineColor;
-    context.lineWidth = 2;
-    context.closePath();
-    context.stroke();
-
-    // Draw all the solid lines connecting the roots
-    context.setLineDash([]);
-    context.lineWidth = 6;
-    stageLinksByType.root.forEach((link) => {
-      context.beginPath();
-
-      const gradient = context.createLinearGradient(link.source.x, link.source.y, link.target.x, link.target.y);
-      gradient.addColorStop(0, link.source.color);
-      gradient.addColorStop(1, link.target.color);
-      context.strokeStyle = gradient;
-
-      drawLink(link);
-      context.closePath();
-      context.stroke();
-    });
-
-    // Draw all borders
-    stageNodesByRoot.sortedRoots.forEach((rootNode) => {
-      const nodesToDraw = stageNodesByRoot[rootNode.id];
-
-      // Dotted borders
-      context.strokeStyle = linkLineColor;
-      context.lineWidth = DOTTED_BORDER_THICKNESS;
-      context.setLineDash([4, 3]);
-      context.beginPath();
-      nodesToDraw.forEach(d => !d.rootNode && drawNode(d, BORDER_DISTANCE));
-      context.closePath();
-      context.stroke();
-
-      // Solid borders
-      context.strokeStyle = rootNode.color;
-      context.lineWidth = SOLID_BORDER_THICKNESS;
-      context.setLineDash([]);
-      context.beginPath();
-      drawNode(rootNode, BORDER_DISTANCE);
-      context.closePath();
-      context.stroke();
-
-      // Draw nodes
-      context.fillStyle = rootNode.color ? rootNode.color : '#000';
-      context.beginPath();
-      nodesToDraw.forEach(d => drawNode(d));
-      context.closePath();
-      context.fill();
-
-      // Draw node titles
-      context.fillStyle = '#FFF';
-      context.textAlign = 'center';
-      context.textBaseline = 'middle';
-      nodesToDraw.forEach((node) => {
-        if (node.animationFinished) {
-          const fontSize = fontSizes[node.size];
-
-          context.font = `normal normal 500 ${fontSize}px ${fontFamily}`;
-          drawText(node);
-        }
-      });
     });
   };
 
@@ -431,8 +407,145 @@ const runSimulation = (canvas, data, options = {}) => {
     reSortStageNodes();
 
     newLinks.forEach(pushStageLink);
+  };
 
-    onProcessTick();
+  const onProcessTick = () => {
+    const offsetXChange = (targetOffsetX - offsetX) * SCROLL_LERPING_SMOOTH;
+    const offsetYChange = (targetOffsetY - offsetY) * SCROLL_LERPING_SMOOTH;
+    const absoluteOffsetXChange = Math.abs(offsetXChange);
+    const minimumEffectiveScroll = 0.5;
+
+    offsetX = absoluteOffsetXChange > minimumEffectiveScroll ? offsetX + offsetXChange : targetOffsetX;
+    offsetY = absoluteOffsetXChange > minimumEffectiveScroll ? offsetY + offsetYChange : targetOffsetY;
+
+    if (absoluteOffsetXChange <= minimumEffectiveScroll && scrolling) {
+      checkForNewNodes();
+
+      if (!nodesAnimating.length && !linksAnimating.length) {
+        onStageFinished();
+      }
+    }
+
+    scrolling = absoluteOffsetXChange > minimumEffectiveScroll;
+
+    if (scrolling && !nodesAnimating.length && !linksAnimating.length && !scrollingStageFinishedTimeout) {
+      scrollingStageFinishedTimeout = setTimeout(() => {
+        scrollingStageFinishedTimeout = null;
+        checkForNewNodes();
+
+        if (!nodesAnimating.length && !linksAnimating.length) {
+          onStageFinished();
+        }
+      }, 50);
+    }
+
+    nodesAnimating.forEach((node) => {
+      const ticksRatio = getLerpingValue(stageTicksLeft);
+
+      if (node.parent) {
+        node.x = node.parent.x + ((node.targetX - node.parent.x) * ticksRatio);
+        node.y = node.parent.y + ((node.targetY - node.parent.y) * ticksRatio);
+      }
+    });
+  };
+
+  // Called every frame of the simulation to draw the nodes and links between them
+  const onDrawTick = () => {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    stageNodesByRoot.sortedRoots.forEach((rootNode) => {
+      const nodesToDraw = stageNodesByRoot[rootNode.id];
+
+      nodesToDraw.forEach((node) => {
+        let radius = nodeSizes[node.size];
+
+        if (nodesAnimating.includes(node)) {
+          const ticksRatio = getLerpingValue(stageTicksLeft);
+
+          radius *= ticksRatio;
+        }
+
+        node.currentRadius = radius;
+      });
+    });
+
+    // Draw all the regular dashed lines
+    context.beginPath();
+    stageLinksByType.normal.forEach(d => drawLink(d));
+    linksAnimating.forEach(d => drawLink(d, getLerpingValue(stageTicksLeft)));
+    // Fix the bug where canvas stretches or doesn't draw the last line properly
+    context.moveTo(0, 0);
+    context.lineTo(0, 0);
+    context.setLineDash([4, 3]);
+    context.strokeStyle = linkLineColor;
+    context.lineWidth = 2;
+    context.closePath();
+    context.stroke();
+
+    // Draw all the solid lines connecting the roots
+    context.setLineDash([]);
+    context.lineWidth = 6;
+    stageLinksByType.root.forEach((link) => {
+      context.beginPath();
+
+      const path = drawLink(link);
+
+      if (!path) {
+        return;
+      }
+
+      const gradient = context.createLinearGradient(path.start.x, path.start.y, path.end.x, path.end.y);
+
+      gradient.addColorStop(0, link.source.color);
+      gradient.addColorStop(1, link.target.color);
+
+      context.strokeStyle = gradient;
+      context.closePath();
+      context.stroke();
+    });
+
+    // Draw all borders
+    stageNodesByRoot.sortedRoots.forEach((rootNode) => {
+      const nodesToDraw = stageNodesByRoot[rootNode.id];
+
+      // Dotted borders
+      context.strokeStyle = linkLineColor;
+      context.lineWidth = DOTTED_BORDER_THICKNESS;
+      context.setLineDash([4, 3]);
+      context.beginPath();
+      nodesToDraw.forEach(d => !d.rootNode && drawNode(d, BORDER_DISTANCE));
+      context.closePath();
+      context.stroke();
+
+      // Solid borders
+      context.strokeStyle = rootNode.color;
+      context.lineWidth = SOLID_BORDER_THICKNESS;
+      context.setLineDash([]);
+      context.beginPath();
+      drawNode(rootNode, BORDER_DISTANCE);
+      context.closePath();
+      context.stroke();
+
+      // Draw nodes
+      context.fillStyle = rootNode.color ? rootNode.color : '#000';
+      context.beginPath();
+      nodesToDraw.forEach(d => drawNode(d));
+      context.closePath();
+      context.fill();
+
+      // Draw node titles
+      context.fillStyle = '#FFF';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      nodesToDraw.forEach((node) => {
+        if (node.animationFinished) {
+          const fontSize = fontSizes[node.size];
+
+          context.font = `normal normal 500 ${fontSize}px ${fontFamily}`;
+          drawText(node);
+        }
+      });
+    });
   };
 
   const simulation = forceSimulation(nodes).force('link', forceLink(links).id(d => d.id).strength(0)).on('tick', () => {
@@ -481,6 +594,7 @@ const runSimulation = (canvas, data, options = {}) => {
   window.addEventListener('resize', function _onWindowResize() {
     windowResizeListener = _onWindowResize;
     onWindowResizeOrScroll();
+    setOffsets(false);
   });
 
   window.addEventListener('scroll', function _onWindowScroll() {
@@ -493,16 +607,53 @@ const runSimulation = (canvas, data, options = {}) => {
       event.preventDefault();
       canvasWheelListener = _onCanvasWheel;
 
-      const maxX = rightMostNodeX - window.innerWidth + canvas.getBoundingClientRect().left + X_AXIS_PADDING;
-
-      targetOffsetX = Math.max(Math.min(targetOffsetX - (event.deltaX * 0.5 * scrollSensitivity), 0), -maxX);
+      setOffsets(false, event);
       reheatSimulation();
+
+      listeners[EVENT_TYPES.SCROLL].forEach((callback) => {
+        callback(event);
+      });
 
       return false;
     }, false);
   }
 
+  simulation.getSelectedRootNode = () => selectedRootNode;
+  simulation.setSelectedRootNode = (id) => {
+    const nodeById = nodes.find(node => node.id === id);
+
+    if (nodeById) {
+      const maxX = rightMostNodeX - window.innerWidth + canvas.getBoundingClientRect().left + X_AXIS_PADDING;
+
+      targetOffsetX = Math.max(-(getLeftMostChildX(nodeById) - X_AXIS_PADDING), -maxX);
+    }
+  };
+
+  simulation.resetScrolling = () => setOffsets(true);
+
+  simulation.addListener = ((type, callback) => {
+    if (listeners[type]) {
+      listeners[type].push(callback);
+    }
+  });
+
+  simulation.removeListener = ((type, callback) => {
+    if (listeners[type]) {
+      const listenersOfType = listeners[type];
+      const index = listenersOfType.indexOf(callback);
+
+      if (!callback) {
+        listeners[type] = [];
+      } else if (index !== -1) {
+        listenersOfType.splice(index, 1);
+      }
+    }
+  });
+
   return simulation;
 };
 
-export { runSimulation };
+export {
+  EVENT_TYPES,
+  runSimulation,
+};

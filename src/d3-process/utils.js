@@ -461,7 +461,33 @@ const parseTreeData = (data, canvas, { nodeSizes }) => {
   };
 };
 
+// Gets the minimum X position in a group of nodes under the same root
+const getLeftMostChildX = (node, minX = null) => {
+  const nodeX = node.targetX || node.x;
+
+  if (minX === null) {
+    minX = nodeX - node.radius;
+  }
+
+  if (node.children) {
+    node.children.forEach((child) => {
+      const childMinX = getLeftMostChildX(child, minX);
+
+      if (childMinX < minX) {
+        minX = childMinX;
+      }
+    });
+  }
+
+  if (nodeX - node.radius < minX) {
+    minX = nodeX - node.radius;
+  }
+
+  return minX;
+};
+
 export {
+  getLeftMostChildX,
   normalizeDisplacement,
   parseTreeData,
 };
