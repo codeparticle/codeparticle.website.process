@@ -1,6 +1,6 @@
 {
   "name": "codeparticle.website.process",
-  "version": "0.2.4",
+  "version": "0.2.6",
   "license": "ISC",
   "author": {
     "name": "codeparticle",
@@ -13,6 +13,7 @@
       "email": "ericky@codeparticle.com"
     }
   ],
+  "homepage": "https://github.com/codeparticle/codeparticle.website.process",
   "dependencies": {
     "autoprefixer": "7.1.6",
     "babel-core": "^6.26.0",
@@ -95,7 +96,7 @@
   "scripts": {
     "start": "node src/server",
     "dev": "npm-run-all -p watch-css start-js",
-    "prepublish": "NODE_ENV=production ./node_modules/.bin/webpack --config ./config/webpack.config.publish.js && cp ./.npmrc ./build/.npmrc",
+    "prepublish": "NODE_ENV=production ./node_modules/.bin/webpack --config ./config/webpack.config.publish.js && cp ./.npmrc ./build/.npmrc && cp ./CHANGELOG.md ./build/CHANGELOG.md && cp ./README.md ./build/README.md",
     "publish": "cd build && npm publish",
     "start-js": "node scripts/start.js",
     "build-css": "rm -rf ./public/css && ./node_modules/.bin/node-sass-chokidar --include-path ./src --include-path ./node_modules src/ -o ./public/css --output-style expanded",
