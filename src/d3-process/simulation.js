@@ -6,6 +6,7 @@ import {
   EVENT_TYPES,
   FONT_SIZES,
   LINK_BASE_COLOR,
+  ROOT_NODE_X_DISTANCE,
   SCROLL_LERPING_SMOOTH,
   SOLID_BORDER_THICKNESS,
   SIZES,
@@ -58,6 +59,8 @@ const runSimulation = (canvas, data, options = {}) => {
   const ticksPerStage = Math.ceil(speedModifier * TICKS_PER_STAGE);
   const context = canvas.getContext('2d');
   const { links, nodes } = parseTreeData(data, canvas, { nodeSizes });
+  const rootNodesRemaining = nodes.filter(node => node.rootNode);
+  const rootNodes = [...rootNodesRemaining];
   const listeners = {
     [EVENT_TYPES.SCROLL]: [],
     [EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE]: [],
@@ -97,7 +100,7 @@ const runSimulation = (canvas, data, options = {}) => {
     const sensitivity = scrollSensitivity / 2;
     let minX = left - parentLeft;
     let minY = top - parentTop;
-    let maxX = rightMostNodeX - window.innerWidth + left + X_AXIS_PADDING;
+    let maxX = rightMostNodeX - window.innerWidth + left + X_AXIS_PADDING + ROOT_NODE_X_DISTANCE;
     let maxY = bottomMostNodeY - canvas.parentElement.offsetHeight + X_AXIS_PADDING;
 
     if (top > parentTop) {
@@ -213,7 +216,7 @@ const runSimulation = (canvas, data, options = {}) => {
     canvasBoundingBox = canvas.getBoundingClientRect();
     rootNodesToAnimateFromNextStage = [];
 
-    nodes.forEach((node) => {
+    rootNodesRemaining.forEach((node) => {
       const nodeIsVisibleOnScreen = node.x + offsetX >= canvasBoundingBox.left;
 
       if (node.rootNode) {
@@ -356,6 +359,14 @@ const runSimulation = (canvas, data, options = {}) => {
       nodesToAnimate.forEach((node) => {
         if (!node.animating && !node.animationFinished && canNodeBeDrawn(node)) {
           nodesAnimating.push(node);
+
+          if (!node.rootNode) {
+            const remainingNodeIndex = rootNodesRemaining.indexOf(node.root);
+
+            if (remainingNodeIndex !== -1) {
+              rootNodesRemaining.splice(remainingNodeIndex, 1);
+            }
+          }
         }
       });
     };
@@ -620,12 +631,17 @@ const runSimulation = (canvas, data, options = {}) => {
 
   simulation.getSelectedRootNode = () => selectedRootNode;
   simulation.setSelectedRootNode = (id) => {
-    const nodeById = nodes.find(node => node.id === id);
+    const nodeById = rootNodes.find(node => node.id === id);
 
     if (nodeById) {
-      const maxX = rightMostNodeX - window.innerWidth + canvas.getBoundingClientRect().left + X_AXIS_PADDING;
+      const maxX = rightMostNodeX - window.innerWidth + canvas.getBoundingClientRect().left + X_AXIS_PADDING + ROOT_NODE_X_DISTANCE;
 
       targetOffsetX = Math.max(-(getLeftMostChildX(nodeById) - X_AXIS_PADDING), -maxX);
+      reheatSimulation();
+
+      listeners[EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE].forEach((callback) => {
+        callback(nodeById);
+      });
     }
   };
 
