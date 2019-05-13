@@ -1,6 +1,7 @@
 import { forceSimulation, forceLink } from 'd3-force';
 
 import {
+  AXIS_PADDING,
   BORDER_DISTANCE,
   DOTTED_BORDER_THICKNESS,
   EVENT_TYPES,
@@ -13,7 +14,6 @@ import {
   TEXT_FONT_FAMILY,
   TEXT_PADDING,
   TICKS_PER_STAGE,
-  X_AXIS_PADDING,
 } from './constants';
 import {
   getLeftMostChildX,
@@ -73,7 +73,7 @@ const runSimulation = (canvas, data, options = {}) => {
   let linksAnimating = [];
   let offsetX = 0;
   let targetOffsetX = 0;
-  let rightMostNodeX = 0;
+  let rightMostNode = 0;
   let bottomMostNode = null;
   let topMostNode = null;
   let offsetY = 0;
@@ -83,7 +83,9 @@ const runSimulation = (canvas, data, options = {}) => {
   const getLerpingValue = stageTicksLeft => Math.min((ticksPerStage - stageTicksLeft) / ticksPerStage, 1);
 
   (nodes || []).forEach((node) => {
-    rightMostNodeX = Math.max(rightMostNodeX, node.fx + node.radius);
+    if (!rightMostNode || rightMostNode.x < node.fx) {
+      rightMostNode = node;
+    }
 
     if (!bottomMostNode || bottomMostNode.y < node.fy) {
       bottomMostNode = node;
@@ -130,14 +132,16 @@ const runSimulation = (canvas, data, options = {}) => {
     const sensitivity = scrollSensitivity / 2;
     const bottomDifference = Math.max(bottom - parentBottom, 0);
     const topDifference = Math.min(top - parentTop, 0);
-    const minY = Math.min(topDifference + (topMostNode.targetY - topMostNode.radius - X_AXIS_PADDING), 0);
-    const maxY = Math.max((bottomMostNode.targetY + bottomMostNode.radius + X_AXIS_PADDING) - (canvas.offsetHeight - bottomDifference), 0);
+    const minY = Math.min(topDifference + (topMostNode.targetY - topMostNode.radius - AXIS_PADDING), 0);
+    const maxY = Math.max((bottomMostNode.targetY + bottomMostNode.radius + AXIS_PADDING) - (canvas.offsetHeight - bottomDifference), 0);
     let minX = left - parentLeft;
-    let maxX = rightMostNodeX - canvas.offsetWidth + left + X_AXIS_PADDING + ROOT_NODE_X_DISTANCE;
+    let maxX = rightMostNode.targetX + rightMostNode.radius - ROOT_NODE_X_DISTANCE;
 
     if (left > parentLeft) {
       minX = 0;
       maxX = 0;
+    } else if (ROOT_NODE_X_DISTANCE > canvas.offsetWidth) {
+      maxX += ROOT_NODE_X_DISTANCE - canvas.offsetWidth + AXIS_PADDING;
     }
 
     if (setToMin) {
@@ -241,7 +245,6 @@ const runSimulation = (canvas, data, options = {}) => {
   nodesAnimating.forEach(pushStageNode);
 
   const checkForNewNodes = () => {
-    const nodeHasBeenDrawn = selectedRootNode.animating || selectedRootNode.animationFinished;
     let foundFirstRootNodeVisible = false;
     let previousSelectedRootNode = selectedRootNode;
 
@@ -249,11 +252,11 @@ const runSimulation = (canvas, data, options = {}) => {
     rootNodesToAnimateFromNextStage = [];
 
     rootNodes.forEach((node) => {
-      const x = canvasBoundingBox.left + node.x + offsetX;
-      const nodeIsVisibleOnSelectionViewport = x >= canvasBoundingBox.left && x <= canvasBoundingBox.left + (canvas.offsetWidth / 2);
-
       if (node.rootNode) {
-        if (!foundFirstRootNodeVisible && nodeIsVisibleOnSelectionViewport && nodeHasBeenDrawn) {
+        const x = canvasBoundingBox.left + node.targetX + offsetX;
+        const nodeIsVisibleOnSelectionViewport = x >= canvasBoundingBox.left;
+
+        if (!foundFirstRootNodeVisible && nodeIsVisibleOnSelectionViewport) {
           foundFirstRootNodeVisible = true;
           selectedRootNode = node;
         }
@@ -648,6 +651,7 @@ const runSimulation = (canvas, data, options = {}) => {
       event.preventDefault();
       canvasWheelListener = _onCanvasWheel;
 
+      checkForNewNodes();
       setOffsets(false, event);
       reheatSimulation();
 
@@ -664,9 +668,9 @@ const runSimulation = (canvas, data, options = {}) => {
     const nodeById = rootNodes.find(node => node.id === id);
 
     if (nodeById) {
-      const maxX = rightMostNodeX - window.innerWidth + canvas.getBoundingClientRect().left + X_AXIS_PADDING + ROOT_NODE_X_DISTANCE;
+      const maxX = rightMostNode.x - window.innerWidth + canvas.getBoundingClientRect().left + AXIS_PADDING + ROOT_NODE_X_DISTANCE;
 
-      targetOffsetX = Math.max(-(getLeftMostChildX(nodeById) - X_AXIS_PADDING), -maxX);
+      targetOffsetX = Math.max(-(getLeftMostChildX(nodeById) - AXIS_PADDING), -maxX);
       reheatSimulation();
 
       listeners[EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE].forEach((callback) => {
