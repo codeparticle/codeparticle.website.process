@@ -28,6 +28,15 @@ body {
   justify-content: flex-start;
   overflow-y: auto;
 
+  .selected-title {
+    font-size: 24px;
+    margin: 16px;
+    position: absolute;
+    text-align: center;
+    top: 0;
+    width: 100%;
+  }
+
   .buttons {
     margin: 16px;
     position: absolute;
@@ -42,6 +51,11 @@ body {
   }
 }
 
-canvas {
-  background-color: rgba(50, 0, 0, 0.05);
+.canvas-parent {
+  height: 100%;
+  width: 100%;
+
+  canvas {
+    background-color: rgba(50, 0, 0, 0.05);
+  }
 }

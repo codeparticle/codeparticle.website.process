@@ -75,26 +75,31 @@ const App = () => {
 
   return (
     <Fragment>
-      <canvas
-        height={size.height}
-        width={size.width}
-        ref={canvasRef}
-      />
+      <div className="canvas-parent">
+        <canvas
+          height={size.height}
+          width={size.width}
+          ref={canvasRef}
+        />
+      </div>
       {selectedRootNodeIndex === null ? null : (
-        <div className="buttons">
-          <button
-            disabled={selectedRootNodeIndex === 0}
-            onClick={onBackClick}
-          >
-            Focus previous
-          </button>
-          <button
-            disabled={selectedRootNodeIndex === processData.rootNodes.length - 1}
-            onClick={onForwardClick}
-          >
-            Focus next
-          </button>
-        </div>
+        <Fragment>
+          <div className="selected-title">{selectedRootNode.id}</div>
+          <div className="buttons">
+            <button
+              disabled={selectedRootNodeIndex === 0}
+              onClick={onBackClick}
+            >
+              Focus previous
+            </button>
+            <button
+              disabled={selectedRootNodeIndex === processData.rootNodes.length - 1}
+              onClick={onForwardClick}
+            >
+              Focus next
+            </button>
+          </div>
+        </Fragment>
       )}
     </Fragment>
   );

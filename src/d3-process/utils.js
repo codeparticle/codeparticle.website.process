@@ -456,18 +456,10 @@ const parseTreeData = (data, simulationMaxHeight, { nodeSizes }) => {
 
   nodes.forEach(node => assignNodePosition(node));
 
-  links.forEach((link) => {
-    const node = nodesById[link.source];
-    const linkedNode = nodesById[getOtherNodeFromLink(link, node)];
-
-    link.distance = getVectorDistance(node.fx, linkedNode.fx, node.fy, linkedNode.fy);
-  });
-
   return {
     nodes,
     links,
     originalData: data,
-    repositionNodes: () => nodes.forEach(node => assignNodePosition(node)),
   };
 };
 
@@ -498,7 +490,6 @@ const getLeftMostChildX = (node, minX = null) => {
 
 export {
   getLeftMostChildX,
-  getOtherNodeFromLink,
   normalizeDisplacement,
   parseTreeData,
 };

@@ -133,7 +133,7 @@ const runSimulation = (canvas, data, options = {}) => {
     const minY = Math.min(topDifference + (topMostNode.targetY - topMostNode.radius - X_AXIS_PADDING), 0);
     const maxY = Math.max((bottomMostNode.targetY + bottomMostNode.radius + X_AXIS_PADDING) - (canvas.offsetHeight - bottomDifference), 0);
     let minX = left - parentLeft;
-    let maxX = rightMostNodeX - window.innerWidth + left + X_AXIS_PADDING + ROOT_NODE_X_DISTANCE;
+    let maxX = rightMostNodeX - canvas.offsetWidth + left + X_AXIS_PADDING + ROOT_NODE_X_DISTANCE;
 
     if (left > parentLeft) {
       minX = 0;
@@ -248,11 +248,12 @@ const runSimulation = (canvas, data, options = {}) => {
     canvasBoundingBox = canvas.getBoundingClientRect();
     rootNodesToAnimateFromNextStage = [];
 
-    rootNodesRemaining.forEach((node) => {
-      const nodeIsVisibleOnScreen = node.x + offsetX >= canvasBoundingBox.left;
+    rootNodes.forEach((node) => {
+      const x = canvasBoundingBox.left + node.x + offsetX;
+      const nodeIsVisibleOnSelectionViewport = x >= canvasBoundingBox.left && x <= canvasBoundingBox.left + (canvas.offsetWidth / 2);
 
       if (node.rootNode) {
-        if (!foundFirstRootNodeVisible && nodeIsVisibleOnScreen && nodeHasBeenDrawn) {
+        if (!foundFirstRootNodeVisible && nodeIsVisibleOnSelectionViewport && nodeHasBeenDrawn) {
           foundFirstRootNodeVisible = true;
           selectedRootNode = node;
         }
