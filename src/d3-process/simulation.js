@@ -1,18 +1,19 @@
 import { forceSimulation, forceLink } from 'd3-force';
 
 import {
+  AXIS_PADDING,
   BORDER_DISTANCE,
   DOTTED_BORDER_THICKNESS,
   EVENT_TYPES,
   FONT_SIZES,
   LINK_BASE_COLOR,
+  ROOT_NODE_X_DISTANCE,
   SCROLL_LERPING_SMOOTH,
   SOLID_BORDER_THICKNESS,
   SIZES,
   TEXT_FONT_FAMILY,
   TEXT_PADDING,
   TICKS_PER_STAGE,
-  X_AXIS_PADDING,
 } from './constants';
 import {
   getLeftMostChildX,
@@ -54,10 +55,13 @@ const runSimulation = (canvas, data, options = {}) => {
     nodeSizes = SIZES,
     scrollSensitivity = 1,
     speedModifier = 1,
+    simulationMaxHeight = 700,
   } = options;
   const ticksPerStage = Math.ceil(speedModifier * TICKS_PER_STAGE);
   const context = canvas.getContext('2d');
-  const { links, nodes } = parseTreeData(data, canvas, { nodeSizes });
+  const { links, nodes } = parseTreeData(data, simulationMaxHeight, { nodeSizes });
+  const rootNodesRemaining = nodes.filter(node => node.rootNode);
+  const rootNodes = [...rootNodesRemaining];
   const listeners = {
     [EVENT_TYPES.SCROLL]: [],
     [EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE]: [],
@@ -69,8 +73,9 @@ const runSimulation = (canvas, data, options = {}) => {
   let linksAnimating = [];
   let offsetX = 0;
   let targetOffsetX = 0;
-  let rightMostNodeX = 0;
-  let bottomMostNodeY = 0;
+  let rightMostNode = 0;
+  let bottomMostNode = null;
+  let topMostNode = null;
   let offsetY = 0;
   let targetOffsetY = 0;
   let scrolling = false;
@@ -78,36 +83,65 @@ const runSimulation = (canvas, data, options = {}) => {
   const getLerpingValue = stageTicksLeft => Math.min((ticksPerStage - stageTicksLeft) / ticksPerStage, 1);
 
   (nodes || []).forEach((node) => {
-    rightMostNodeX = Math.max(rightMostNodeX, node.fx + node.radius);
-    bottomMostNodeY = Math.max(bottomMostNodeY, node.fy + node.radius);
+    if (!rightMostNode || rightMostNode.x < node.fx) {
+      rightMostNode = node;
+    }
+
+    if (!bottomMostNode || bottomMostNode.y < node.fy) {
+      bottomMostNode = node;
+    }
+
+    if (!topMostNode || topMostNode.y > node.fy) {
+      topMostNode = node;
+    }
+
+    node.x = node.fx;
+    node.y = node.fy;
+    node.finalX = node.fx;
+    node.finalY = node.fy;
+    node.targetX = node.fx;
+    node.targetY = node.fy;
+    node.fx = null;
+    node.fy = null;
   });
+
+  const reCenterNodes = () => {
+    (nodes || []).forEach((node) => {
+      node.targetY = node.finalY + ((canvas.height - simulationMaxHeight) / 2);
+
+      if (node.animationFinished || node.static) {
+        node.y = node.targetY;
+      }
+    });
+  };
 
   const setOffsets = (setToMin = false, {
     deltaX = 0,
     deltaY = 0,
   } = {}) => {
     const {
+      bottom: parentBottom,
       left: parentLeft,
       top: parentTop,
     } = canvas.parentElement.getBoundingClientRect();
     const {
+      bottom,
       left,
       top,
     } = canvas.getBoundingClientRect();
     const sensitivity = scrollSensitivity / 2;
+    const bottomDifference = Math.max(bottom - parentBottom, 0);
+    const topDifference = Math.min(top - parentTop, 0);
+    const minY = Math.min(topDifference + (topMostNode.targetY - topMostNode.radius - AXIS_PADDING), 0);
+    const maxY = Math.max((bottomMostNode.targetY + bottomMostNode.radius + AXIS_PADDING) - (canvas.offsetHeight - bottomDifference), 0);
     let minX = left - parentLeft;
-    let minY = top - parentTop;
-    let maxX = rightMostNodeX - window.innerWidth + left + X_AXIS_PADDING;
-    let maxY = bottomMostNodeY - canvas.parentElement.offsetHeight + X_AXIS_PADDING;
-
-    if (top > parentTop) {
-      minY = 0;
-      maxY = 0;
-    }
+    let maxX = rightMostNode.targetX + rightMostNode.radius - ROOT_NODE_X_DISTANCE;
 
     if (left > parentLeft) {
       minX = 0;
       maxX = 0;
+    } else if (ROOT_NODE_X_DISTANCE > canvas.offsetWidth) {
+      maxX += ROOT_NODE_X_DISTANCE - canvas.offsetWidth + AXIS_PADDING;
     }
 
     if (setToMin) {
@@ -120,10 +154,6 @@ const runSimulation = (canvas, data, options = {}) => {
       targetOffsetY = Math.max(Math.min(targetOffsetY - (deltaY * sensitivity), -minY), -maxY);
     }
   };
-
-  if (!disableCanvasScrolling) {
-    setOffsets(true);
-  }
 
   // Returns true if the root node has been visible on the screen at least once
   const canNodeBeDrawn = (node) => {
@@ -152,12 +182,21 @@ const runSimulation = (canvas, data, options = {}) => {
       const node = nodes[i];
 
       if (node.rootNode && canNodeBeDrawn(node)) {
+        node.static = true;
         nodesAnimating.push(node);
         selectedRootNode = node;
 
         break;
       }
     }
+  }
+
+  reCenterNodes();
+  setTimeout(reCenterNodes);
+
+  if (!disableCanvasScrolling) {
+    setOffsets(true);
+    setTimeout(() => setOffsets(true));
   }
 
   const stageNodesByRoot = { sortedRoots: [] };
@@ -206,18 +245,18 @@ const runSimulation = (canvas, data, options = {}) => {
   nodesAnimating.forEach(pushStageNode);
 
   const checkForNewNodes = () => {
-    const nodeHasBeenDrawn = selectedRootNode.animating || selectedRootNode.animationFinished;
     let foundFirstRootNodeVisible = false;
     let previousSelectedRootNode = selectedRootNode;
 
     canvasBoundingBox = canvas.getBoundingClientRect();
     rootNodesToAnimateFromNextStage = [];
 
-    nodes.forEach((node) => {
-      const nodeIsVisibleOnScreen = node.x + offsetX >= canvasBoundingBox.left;
-
+    rootNodes.forEach((node) => {
       if (node.rootNode) {
-        if (!foundFirstRootNodeVisible && nodeIsVisibleOnScreen && nodeHasBeenDrawn) {
+        const x = canvasBoundingBox.left + node.targetX + offsetX;
+        const nodeIsVisibleOnSelectionViewport = x >= canvasBoundingBox.left;
+
+        if (!foundFirstRootNodeVisible && nodeIsVisibleOnSelectionViewport) {
           foundFirstRootNodeVisible = true;
           selectedRootNode = node;
         }
@@ -356,6 +395,14 @@ const runSimulation = (canvas, data, options = {}) => {
       nodesToAnimate.forEach((node) => {
         if (!node.animating && !node.animationFinished && canNodeBeDrawn(node)) {
           nodesAnimating.push(node);
+
+          if (!node.rootNode) {
+            const remainingNodeIndex = rootNodesRemaining.indexOf(node.root);
+
+            if (remainingNodeIndex !== -1) {
+              rootNodesRemaining.splice(remainingNodeIndex, 1);
+            }
+          }
         }
       });
     };
@@ -395,10 +442,6 @@ const runSimulation = (canvas, data, options = {}) => {
 
     nodesAnimating.forEach((node) => {
       node.animating = true;
-      node.targetX = node.fx;
-      node.targetY = node.fy;
-      node.fx = null;
-      node.fy = null;
       node.x = node.parent.x;
       node.y = node.parent.y;
       pushStageNode(node);
@@ -595,6 +638,7 @@ const runSimulation = (canvas, data, options = {}) => {
     windowResizeListener = _onWindowResize;
     onWindowResizeOrScroll();
     setOffsets(false);
+    reCenterNodes();
   });
 
   window.addEventListener('scroll', function _onWindowScroll() {
@@ -607,6 +651,7 @@ const runSimulation = (canvas, data, options = {}) => {
       event.preventDefault();
       canvasWheelListener = _onCanvasWheel;
 
+      checkForNewNodes();
       setOffsets(false, event);
       reheatSimulation();
 
@@ -620,12 +665,17 @@ const runSimulation = (canvas, data, options = {}) => {
 
   simulation.getSelectedRootNode = () => selectedRootNode;
   simulation.setSelectedRootNode = (id) => {
-    const nodeById = nodes.find(node => node.id === id);
+    const nodeById = rootNodes.find(node => node.id === id);
 
     if (nodeById) {
-      const maxX = rightMostNodeX - window.innerWidth + canvas.getBoundingClientRect().left + X_AXIS_PADDING;
+      const maxX = rightMostNode.x - window.innerWidth + canvas.getBoundingClientRect().left + AXIS_PADDING + ROOT_NODE_X_DISTANCE;
 
-      targetOffsetX = Math.max(-(getLeftMostChildX(nodeById) - X_AXIS_PADDING), -maxX);
+      targetOffsetX = Math.max(-(getLeftMostChildX(nodeById) - AXIS_PADDING), -maxX);
+      reheatSimulation();
+
+      listeners[EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE].forEach((callback) => {
+        callback(nodeById);
+      });
     }
   };
 

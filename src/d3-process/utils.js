@@ -8,6 +8,8 @@ import {
 // Max iterations to go in a full circle when calculating position around a parent
 const MAX_ITERATIONS = 10;
 
+const getVectorDistance = (x1, x2, y1, y2) => Math.sqrt(((x2 - x1) ** 2) + ((y2 - y1) ** 2));
+
 // Returns a link object from 2 nodes
 const getLink = (source, target, external = false) => ({ source, target, external });
 
@@ -39,7 +41,7 @@ const normalizeDisplacement = (point, scale = 1, propertyPrefix = 'd') => {
 };
 
 // Main function to parse the tree data received into nodes and links
-const parseTreeData = (data, canvas, { nodeSizes }) => {
+const parseTreeData = (data, simulationMaxHeight, { nodeSizes }) => {
   if (!data || !data.rootNodes || !data.rootNodes.length) {
     return null;
   }
@@ -159,10 +161,10 @@ const parseTreeData = (data, canvas, { nodeSizes }) => {
   const isNodeColliding = (nodeToCheck) => {
     const minY = nodeToCheck.fy - nodeToCheck.radius - NODE_MARGIN;
     const maxY = nodeToCheck.fy + nodeToCheck.radius + NODE_MARGIN;
-    const canvasMiddleY = canvas.height / 2;
+    const canvasMiddleY = simulationMaxHeight / 2;
 
     // Check against top and bottom canvas bounds
-    if (minY < 0 || nodeToCheck.fx - nodeToCheck.radius < 0 || maxY > canvas.height) {
+    if (minY < 0 || nodeToCheck.fx - nodeToCheck.radius < 0 || maxY > simulationMaxHeight) {
       return true;
     }
 
@@ -207,7 +209,7 @@ const parseTreeData = (data, canvas, { nodeSizes }) => {
       const node = nodes[i];
 
       if (node !== nodeToCheck && node.positionAssigned) {
-        const distance = Math.sqrt(((node.fx - nodeToCheck.fx) ** 2) + ((node.fy - nodeToCheck.fy) ** 2));
+        const distance = getVectorDistance(nodeToCheck.fx, node.fx, nodeToCheck.fy, node.fy);
 
         if (distance < node.radius + nodeToCheck.radius + 20) {
           return true;
@@ -304,7 +306,7 @@ const parseTreeData = (data, canvas, { nodeSizes }) => {
 
     if (node.rootNode) {
       node.fx = ROOT_NODE_INITIAL_X_POSITION + (node.siblingIndex * ROOT_NODE_X_DISTANCE);
-      node.fy = canvas.height / 2;
+      node.fy = simulationMaxHeight / 2;
 
       node.positionAssigned = true;
     } else {
@@ -367,7 +369,7 @@ const parseTreeData = (data, canvas, { nodeSizes }) => {
       // Fix position of this node based on the linked nodes
       node.links.forEach((link) => {
         const linkedNode = nodesById[getOtherNodeFromLink(link, node)];
-        const halfCanvasHeight = canvas.height / 2;
+        const halfCanvasHeight = simulationMaxHeight / 2;
 
         // Try to move nodes with the same parent who are linked together closer together
         if (linkedNode.parent === node.parent && !linkedNode.positionAssigned) {
