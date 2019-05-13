@@ -55,10 +55,11 @@ const runSimulation = (canvas, data, options = {}) => {
     nodeSizes = SIZES,
     scrollSensitivity = 1,
     speedModifier = 1,
+    simulationMaxHeight = 700,
   } = options;
   const ticksPerStage = Math.ceil(speedModifier * TICKS_PER_STAGE);
   const context = canvas.getContext('2d');
-  const { links, nodes } = parseTreeData(data, canvas, { nodeSizes });
+  const { links, nodes } = parseTreeData(data, simulationMaxHeight, { nodeSizes });
   const rootNodesRemaining = nodes.filter(node => node.rootNode);
   const rootNodes = [...rootNodesRemaining];
   const listeners = {
@@ -73,7 +74,8 @@ const runSimulation = (canvas, data, options = {}) => {
   let offsetX = 0;
   let targetOffsetX = 0;
   let rightMostNodeX = 0;
-  let bottomMostNodeY = 0;
+  let bottomMostNode = null;
+  let topMostNode = null;
   let offsetY = 0;
   let targetOffsetY = 0;
   let scrolling = false;
@@ -82,31 +84,56 @@ const runSimulation = (canvas, data, options = {}) => {
 
   (nodes || []).forEach((node) => {
     rightMostNodeX = Math.max(rightMostNodeX, node.fx + node.radius);
-    bottomMostNodeY = Math.max(bottomMostNodeY, node.fy + node.radius);
+
+    if (!bottomMostNode || bottomMostNode.y < node.fy) {
+      bottomMostNode = node;
+    }
+
+    if (!topMostNode || topMostNode.y > node.fy) {
+      topMostNode = node;
+    }
+
+    node.x = node.fx;
+    node.y = node.fy;
+    node.finalX = node.fx;
+    node.finalY = node.fy;
+    node.targetX = node.fx;
+    node.targetY = node.fy;
+    node.fx = null;
+    node.fy = null;
   });
+
+  const reCenterNodes = () => {
+    (nodes || []).forEach((node) => {
+      node.targetY = node.finalY + ((canvas.height - simulationMaxHeight) / 2);
+
+      if (node.animationFinished || node.static) {
+        node.y = node.targetY;
+      }
+    });
+  };
 
   const setOffsets = (setToMin = false, {
     deltaX = 0,
     deltaY = 0,
   } = {}) => {
     const {
+      bottom: parentBottom,
       left: parentLeft,
       top: parentTop,
     } = canvas.parentElement.getBoundingClientRect();
     const {
+      bottom,
       left,
       top,
     } = canvas.getBoundingClientRect();
     const sensitivity = scrollSensitivity / 2;
+    const bottomDifference = Math.max(bottom - parentBottom, 0);
+    const topDifference = Math.min(top - parentTop, 0);
+    const minY = Math.min(topDifference + (topMostNode.targetY - topMostNode.radius - X_AXIS_PADDING), 0);
+    const maxY = Math.max((bottomMostNode.targetY + bottomMostNode.radius + X_AXIS_PADDING) - (canvas.offsetHeight - bottomDifference), 0);
     let minX = left - parentLeft;
-    let minY = top - parentTop;
     let maxX = rightMostNodeX - window.innerWidth + left + X_AXIS_PADDING + ROOT_NODE_X_DISTANCE;
-    let maxY = bottomMostNodeY - canvas.parentElement.offsetHeight + X_AXIS_PADDING;
-
-    if (top > parentTop) {
-      minY = 0;
-      maxY = 0;
-    }
 
     if (left > parentLeft) {
       minX = 0;
@@ -123,10 +150,6 @@ const runSimulation = (canvas, data, options = {}) => {
       targetOffsetY = Math.max(Math.min(targetOffsetY - (deltaY * sensitivity), -minY), -maxY);
     }
   };
-
-  if (!disableCanvasScrolling) {
-    setOffsets(true);
-  }
 
   // Returns true if the root node has been visible on the screen at least once
   const canNodeBeDrawn = (node) => {
@@ -155,12 +178,21 @@ const runSimulation = (canvas, data, options = {}) => {
       const node = nodes[i];
 
       if (node.rootNode && canNodeBeDrawn(node)) {
+        node.static = true;
         nodesAnimating.push(node);
         selectedRootNode = node;
 
         break;
       }
     }
+  }
+
+  reCenterNodes();
+  setTimeout(reCenterNodes);
+
+  if (!disableCanvasScrolling) {
+    setOffsets(true);
+    setTimeout(() => setOffsets(true));
   }
 
   const stageNodesByRoot = { sortedRoots: [] };
@@ -406,10 +438,6 @@ const runSimulation = (canvas, data, options = {}) => {
 
     nodesAnimating.forEach((node) => {
       node.animating = true;
-      node.targetX = node.fx;
-      node.targetY = node.fy;
-      node.fx = null;
-      node.fy = null;
       node.x = node.parent.x;
       node.y = node.parent.y;
       pushStageNode(node);
@@ -606,6 +634,7 @@ const runSimulation = (canvas, data, options = {}) => {
     windowResizeListener = _onWindowResize;
     onWindowResizeOrScroll();
     setOffsets(false);
+    reCenterNodes();
   });
 
   window.addEventListener('scroll', function _onWindowScroll() {

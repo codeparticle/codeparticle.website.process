@@ -10,29 +10,51 @@ import './app.scss';
 
 const App = () => {
   const canvasRef = useRef();
+  const [size, setSize] = useState({ height: 0, width: 0 });
   const [simulation, setSimulation] = useState(null);
   const [selectedRootNode, setSelectedRootNode] = useState(null);
 
   useEffect(() => {
+    const onWindowsResize = () => {
+      const { height, width } = canvasRef.current.parentElement.getBoundingClientRect();
+
+      setSize({
+        height,
+        width,
+      });
+    };
     const onSelectedRootNodeChange = (node) => {
       setSelectedRootNode(node);
     };
     let startedSimulation = null;
 
-    if (canvasRef.current) {
-      startedSimulation = runSimulation(canvasRef.current, processData);
+    if (canvasRef.current && !simulation) {
+      startedSimulation = runSimulation(canvasRef.current, processData, {
+        simulationMaxHeight: 800,
+      });
 
-      startedSimulation.addListener(EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE, onSelectedRootNodeChange);
       setSelectedRootNode(startedSimulation.getSelectedRootNode());
       setSimulation(startedSimulation);
+
+      setSize(canvasRef.current.parentElement.getBoundingClientRect());
     }
 
+    const runningSimulation = startedSimulation || simulation;
+
+    if (runningSimulation) {
+      runningSimulation.addListener(EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE, onSelectedRootNodeChange);
+    }
+
+    window.addEventListener('resize', onWindowsResize);
+
     return () => {
-      if (startedSimulation) {
-        startedSimulation.removeListener(EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE, onSelectedRootNodeChange);
+      if (runningSimulation) {
+        runningSimulation.removeListener(EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE, onSelectedRootNodeChange);
       }
+
+      window.removeEventListener('resize', onWindowsResize);
     };
-  }, [canvasRef.current]);
+  }, [canvasRef.current, simulation]);
 
   let selectedRootNodeIndex = null;
 
@@ -54,8 +76,8 @@ const App = () => {
   return (
     <Fragment>
       <canvas
-        height={700}
-        width={2800}
+        height={size.height}
+        width={size.width}
         ref={canvasRef}
       />
       {selectedRootNodeIndex === null ? null : (
