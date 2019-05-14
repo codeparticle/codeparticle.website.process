@@ -6,6 +6,7 @@ import {
   DEFAULT_BREAKPOINT_HEIGHT,
   DEFAULT_FONT_SIZES,
   DEFAULT_LINK_BASE_COLOR,
+  DEFAULT_NODE_TITLE_BASE_COLOR,
   DEFAULT_SIMULATION_MAX_HEIGHT,
   DEFAULT_SIZES,
   DEFAULT_TEXT_FONT_FAMILY,
@@ -60,6 +61,7 @@ const runSimulation = (canvas, data, options = {}) => {
     icons = {},
     linkLineColor = DEFAULT_LINK_BASE_COLOR,
     nodeSizes = DEFAULT_SIZES,
+    nodeTitleBaseColor = DEFAULT_NODE_TITLE_BASE_COLOR,
     scrollSensitivity = 1,
     speedModifier = 1,
     simulationMaxHeight = DEFAULT_SIMULATION_MAX_HEIGHT,
@@ -361,6 +363,7 @@ const runSimulation = (canvas, data, options = {}) => {
     let i = 0;
 
     context.font = `normal normal 500 ${fontSize}px ${fontFamily}`;
+    context.fillStyle = (d.root || d).fontColor || nodeTitleBaseColor;
 
     while (i <= words.length - 1) {
       if (i < words.length - 1) {
@@ -615,7 +618,6 @@ const runSimulation = (canvas, data, options = {}) => {
       context.fill();
 
       // Draw node titles
-      context.fillStyle = '#FFF';
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       nodesToDraw.forEach((node) => {

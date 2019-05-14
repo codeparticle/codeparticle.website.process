@@ -177,6 +177,29 @@
           "links": ["Push Fixes"]
         }
       ]
+    },
+    {
+      "title": "Retriement",
+      "size": 0,
+      "color": "#FFFFFF",
+      "fontColor": "#9CA8B5",
+      "children": [
+        {
+          "title": "Backup",
+          "icon": "backup",
+          "size": 2
+        },
+        {
+          "title": "Tasks",
+          "icon": "tasks",
+          "size": 2
+        },
+        {
+          "title": "Down Server",
+          "icon": "downServer",
+          "size": 2
+        }
+      ]
     }
   ]
 }

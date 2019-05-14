@@ -124,6 +124,7 @@ const parseTreeData = (data, simulationMaxHeight, { icons, nodeSizes }) => {
     const rootNode = {
       id: rootNodeData.title,
       color: rootNodeData.color,
+      fontColor: rootNodeData.fontColor,
       icon: getImage(icons[rootNodeData.icon] || rootNodeData.icon),
       siblingIndex: index,
       size: rootNodeData.size,
@@ -323,7 +324,6 @@ const parseTreeData = (data, simulationMaxHeight, { icons, nodeSizes }) => {
 
       node.positionAssigned = true;
     } else {
-      const nodeSiblingIndexXModifier = node.root.next ? 0 : 2;
       let defaultX = 1;
       let defaultY = 0.7;
 
@@ -332,7 +332,7 @@ const parseTreeData = (data, simulationMaxHeight, { icons, nodeSizes }) => {
         defaultY = 1;
       }
 
-      if (node.parent.rootNode && node.parent.siblingIndex !== 0 && (node.siblingIndex + nodeSiblingIndexXModifier) % 4 < 2) {
+      if (node.parent.rootNode && node.parent.siblingIndex !== 0 && (node.siblingIndex) % 4 < 2) {
         defaultX *= -1;
       }
 
