@@ -56,10 +56,11 @@ let windowScrollListener = null;
 const runSimulation = (canvas, data, options = {}) => {
   const {
     breakpointHeight = DEFAULT_BREAKPOINT_HEIGHT,
-    disableCanvasScrolling = false,
+    disableCanvasScrolling = true,
     disableRootNodeSelectionOnScroll = false,
     fontFamily = DEFAULT_TEXT_FONT_FAMILY,
     fontSizes = DEFAULT_FONT_SIZES,
+    expandOnlyOnSelected = true,
     icons = {},
     linkLineColor = DEFAULT_LINK_BASE_COLOR,
     nodeSizes = DEFAULT_SIZES,
@@ -157,6 +158,10 @@ const runSimulation = (canvas, data, options = {}) => {
     const { left } = canvasBoundingBox;
     const zoom = getZoom();
 
+    if (expandOnlyOnSelected) {
+      return node.rootNode || root.hasBeenSelected;
+    }
+
     if (node.rootNode || (node.root && node.root.hasBeenVisible)) {
       return true;
     }
@@ -178,7 +183,8 @@ const runSimulation = (canvas, data, options = {}) => {
     for (let i = 0; i < nodes.length; i += 1) {
       const node = nodes[i];
 
-      if (node.rootNode && canNodeBeDrawn(node)) {
+      if (node.rootNode) {
+        node.hasBeenSelected = true;
         node.static = true;
         nodesAnimating.push(node);
         selectedRootNode = node;
@@ -252,13 +258,17 @@ const runSimulation = (canvas, data, options = {}) => {
       if (node.rootNode) {
         const x = canvasBoundingBox.left + (node.finalX || node.targetX) + offsetX;
         const nodeIsVisibleOnSelectionViewport = x >= canvasBoundingBox.left;
+        const distanceLeftToScroll = offsetX - targetOffsetX;
+        const canAnimateIfExpandOnlyOnSelectedFalse = !expandOnlyOnSelected
+          && !targetRootNodeToSelect && (!node.hasBeenVisible && node.animationFinished);
+        const canAnimateIfExpandOnlyOnSelectedTrue = expandOnlyOnSelected && Math.abs(distanceLeftToScroll) <= 1 && node.hasBeenSelected;
 
         if (!foundFirstRootNodeVisible && nodeIsVisibleOnSelectionViewport) {
           foundFirstRootNodeVisible = true;
           selectedRootNode = node;
         }
 
-        if (!targetRootNodeToSelect && (!node.hasBeenVisible && node.animationFinished)) {
+        if (canAnimateIfExpandOnlyOnSelectedFalse || canAnimateIfExpandOnlyOnSelectedTrue) {
           rootNodesToAnimateFromNextStage.push(node);
         }
       }
@@ -494,8 +504,8 @@ const runSimulation = (canvas, data, options = {}) => {
       }
 
       if (absoluteOffsetXChange <= minimumEffectiveScroll || offsetX === targetOffsetX) {
-        targetRootNodeToSelect = null;
         checkForNewNodes();
+        targetRootNodeToSelect = null;
 
         if (!nodesAnimating.length && !linksAnimating.length) {
           onStageFinished();
@@ -508,7 +518,10 @@ const runSimulation = (canvas, data, options = {}) => {
     if (scrolling && !nodesAnimating.length && !linksAnimating.length && !scrollingStageFinishedTimeout) {
       scrollingStageFinishedTimeout = setTimeout(() => {
         scrollingStageFinishedTimeout = null;
-        checkForNewNodes();
+
+        if (!expandOnlyOnSelected) {
+          checkForNewNodes();
+        }
 
         if (!nodesAnimating.length && !linksAnimating.length) {
           onStageFinished();
@@ -655,7 +668,9 @@ const runSimulation = (canvas, data, options = {}) => {
 
   // Checks for newly visible root nodes that haven't been animated
   const onWindowResizeOrScroll = () => {
-    checkForNewNodes();
+    if (!expandOnlyOnSelected) {
+      checkForNewNodes();
+    }
 
     if (!nodesAnimating.length && !linksAnimating.length) {
       onStageFinished();
@@ -694,7 +709,10 @@ const runSimulation = (canvas, data, options = {}) => {
       canvasWheelListener = _onCanvasWheel;
       targetRootNodeToSelect = null;
 
-      checkForNewNodes();
+      if (!expandOnlyOnSelected) {
+        checkForNewNodes();
+      }
+
       setOffsets(false, event);
       reheatSimulation();
 
@@ -709,15 +727,25 @@ const runSimulation = (canvas, data, options = {}) => {
   simulation.getSelectedRootNode = () => selectedRootNode;
   simulation.setSelectedRootNode = (id) => {
     const nodeById = rootNodes.find(node => node.id === id);
+    const zoom = getZoom();
 
     if (nodeById) {
-      const maxVisibleWidth = ((rightMostNode.finalX + rightMostNode.radius) * getZoom()) + AXIS_PADDING;
+      const maxVisibleWidth = ((rightMostNode.finalX + rightMostNode.radius) * zoom) + AXIS_PADDING;
       const maxX = maxVisibleWidth - canvas.offsetWidth;
 
+      nodeById.hasBeenSelected = true;
       initialXWhenSelectingRootNode = offsetX;
       targetRootNodeToSelect = nodeById;
-      targetOffsetX = Math.min(Math.max(-(getLeftMostChildX(nodeById) - AXIS_PADDING), -maxX), 0);
+      targetOffsetX = Math.min(Math.max(-(getLeftMostChildX(nodeById) - AXIS_PADDING) * zoom, -maxX), 0);
       reheatSimulation();
+
+      if (expandOnlyOnSelected) {
+        checkForNewNodes();
+
+        if (!nodesAnimating.length && !linksAnimating.length && Math.abs(targetOffsetX - offsetX) === 0) {
+          onStageFinished();
+        }
+      }
 
       listeners[EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE].forEach((callback) => {
         callback(nodeById);
