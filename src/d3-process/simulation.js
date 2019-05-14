@@ -323,6 +323,10 @@ const runSimulation = (canvas, data, options = {}) => {
       y: d.target.currentRadius * distanceVector.y,
     };
 
+    if (Math.abs(d.source.x - x) < Math.abs(sourceDisplacement.x) + Math.abs(targetDisplacement.x)) {
+      return null;
+    }
+
     const start = {
       x: offsetX + ((d.source.x + sourceDisplacement.x) * zoom),
       y: (d.source.y + sourceDisplacement.y) * zoom,
