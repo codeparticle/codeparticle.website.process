@@ -1,7 +1,7 @@
 import {
+  AXIS_PADDING,
   NODE_INITAL_DISTANCE_FROM_PARENT,
   NODE_MARGIN,
-  ROOT_NODE_INITIAL_X_POSITION,
   ROOT_NODE_X_DISTANCE,
 } from './constants';
 
@@ -40,8 +40,19 @@ const normalizeDisplacement = (point, scale = 1, propertyPrefix = 'd') => {
   }
 };
 
+const getImage = (source) => {
+  if (!source) {
+    return null;
+  }
+
+  const image = new Image();
+  image.src = source;
+
+  return image;
+};
+
 // Main function to parse the tree data received into nodes and links
-const parseTreeData = (data, simulationMaxHeight, { nodeSizes }) => {
+const parseTreeData = (data, simulationMaxHeight, { icons, nodeSizes }) => {
   if (!data || !data.rootNodes || !data.rootNodes.length) {
     return null;
   }
@@ -67,6 +78,7 @@ const parseTreeData = (data, simulationMaxHeight, { nodeSizes }) => {
 
         return {
           id: child.title,
+          icon: getImage(icons[child.icon] || child.icon),
           siblingIndex: index,
           size: child.size,
           radius: nodeSizes[child.size],
@@ -112,6 +124,7 @@ const parseTreeData = (data, simulationMaxHeight, { nodeSizes }) => {
     const rootNode = {
       id: rootNodeData.title,
       color: rootNodeData.color,
+      icon: getImage(icons[rootNodeData.icon] || rootNodeData.icon),
       siblingIndex: index,
       size: rootNodeData.size,
       radius: nodeSizes[rootNodeData.size],
@@ -305,7 +318,7 @@ const parseTreeData = (data, simulationMaxHeight, { nodeSizes }) => {
     }
 
     if (node.rootNode) {
-      node.fx = ROOT_NODE_INITIAL_X_POSITION + (node.siblingIndex * ROOT_NODE_X_DISTANCE);
+      node.fx = nodeSizes[0] + AXIS_PADDING + (node.siblingIndex * ROOT_NODE_X_DISTANCE);
       node.fy = simulationMaxHeight / 2;
 
       node.positionAssigned = true;

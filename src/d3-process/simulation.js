@@ -3,15 +3,18 @@ import { forceSimulation, forceLink } from 'd3-force';
 import {
   AXIS_PADDING,
   BORDER_DISTANCE,
+  DEFAULT_BREAKPOINT_HEIGHT,
+  DEFAULT_FONT_SIZES,
+  DEFAULT_LINK_BASE_COLOR,
+  DEFAULT_SIMULATION_MAX_HEIGHT,
+  DEFAULT_SIZES,
+  DEFAULT_TEXT_FONT_FAMILY,
   DOTTED_BORDER_THICKNESS,
   EVENT_TYPES,
-  FONT_SIZES,
-  LINK_BASE_COLOR,
+  NODE_BORDER_WIDTH,
+  ROOT_NODE_LINK_LINE_WIDTH,
   ROOT_NODE_X_DISTANCE,
   SCROLL_LERPING_SMOOTH,
-  SOLID_BORDER_THICKNESS,
-  SIZES,
-  TEXT_FONT_FAMILY,
   TEXT_PADDING,
   TICKS_PER_STAGE,
 } from './constants';
@@ -32,7 +35,8 @@ let windowScrollListener = null;
  * @param {Object} options - {
  *  @param {boolean} disableCanvasScrolling - When true, the canvas will not have a scroll event that intercepts the browsers' scroll
  *  @param {string} fontFamily - Font family of the text on top of the nodes
- *  @param {number} fontSize - Font size of the text on top of the nodes
+ *  @param {number} fontSizes - Font sizes of the text on top of the nodes
+ *  @param {Object} icons - Icons to be displayed on top of nodes (property names must match to the node.icon field)
  *  @param {string} linkLineColor - Color of the dotted line connecting the nodes
  *  @param {array} nodeSizes - Array of 3 elements for each node size
  *  @param {number} scrollSensitivity - Multiplier for the speed of the canvas scrolling
@@ -49,17 +53,19 @@ let windowScrollListener = null;
 const runSimulation = (canvas, data, options = {}) => {
   const {
     disableCanvasScrolling = false,
-    fontFamily = TEXT_FONT_FAMILY,
-    fontSizes = FONT_SIZES,
-    linkLineColor = LINK_BASE_COLOR,
-    nodeSizes = SIZES,
+    breakpointHeight = DEFAULT_BREAKPOINT_HEIGHT,
+    fontFamily = DEFAULT_TEXT_FONT_FAMILY,
+    fontSizes = DEFAULT_FONT_SIZES,
+    icons = {},
+    linkLineColor = DEFAULT_LINK_BASE_COLOR,
+    nodeSizes = DEFAULT_SIZES,
     scrollSensitivity = 1,
     speedModifier = 1,
-    simulationMaxHeight = 700,
+    simulationMaxHeight = DEFAULT_SIMULATION_MAX_HEIGHT,
   } = options;
   const ticksPerStage = Math.ceil(speedModifier * TICKS_PER_STAGE);
   const context = canvas.getContext('2d');
-  const { links, nodes } = parseTreeData(data, simulationMaxHeight, { nodeSizes });
+  const { links, nodes } = parseTreeData(data, simulationMaxHeight, { icons, nodeSizes });
   const rootNodesRemaining = nodes.filter(node => node.rootNode);
   const rootNodes = [...rootNodesRemaining];
   const listeners = {
@@ -76,8 +82,6 @@ const runSimulation = (canvas, data, options = {}) => {
   let rightMostNode = 0;
   let bottomMostNode = null;
   let topMostNode = null;
-  let offsetY = 0;
-  let targetOffsetY = 0;
   let scrolling = false;
   let scrollingStageFinishedTimeout = null;
   const getLerpingValue = stageTicksLeft => Math.min((ticksPerStage - stageTicksLeft) / ticksPerStage, 1);
@@ -105,9 +109,11 @@ const runSimulation = (canvas, data, options = {}) => {
     node.fy = null;
   });
 
+  const getZoom = () => Math.min(canvas.offsetHeight / simulationMaxHeight, 1);
+
   const reCenterNodes = () => {
     (nodes || []).forEach((node) => {
-      node.targetY = node.finalY + ((canvas.height - simulationMaxHeight) / 2);
+      node.targetY = node.finalY + Math.max((canvas.height - simulationMaxHeight) / 2, 0);
 
       if (node.animationFinished || node.static) {
         node.y = node.targetY;
@@ -117,23 +123,10 @@ const runSimulation = (canvas, data, options = {}) => {
 
   const setOffsets = (setToMin = false, {
     deltaX = 0,
-    deltaY = 0,
   } = {}) => {
-    const {
-      bottom: parentBottom,
-      left: parentLeft,
-      top: parentTop,
-    } = canvas.parentElement.getBoundingClientRect();
-    const {
-      bottom,
-      left,
-      top,
-    } = canvas.getBoundingClientRect();
+    const { left: parentLeft } = canvas.parentElement.getBoundingClientRect();
+    const { left } = canvas.getBoundingClientRect();
     const sensitivity = scrollSensitivity / 2;
-    const bottomDifference = Math.max(bottom - parentBottom, 0);
-    const topDifference = Math.min(top - parentTop, 0);
-    const minY = Math.min(topDifference + (topMostNode.targetY - topMostNode.radius - AXIS_PADDING), 0);
-    const maxY = Math.max((bottomMostNode.targetY + bottomMostNode.radius + AXIS_PADDING) - (canvas.offsetHeight - bottomDifference), 0);
     let minX = left - parentLeft;
     let maxX = rightMostNode.targetX + rightMostNode.radius - ROOT_NODE_X_DISTANCE;
 
@@ -146,12 +139,9 @@ const runSimulation = (canvas, data, options = {}) => {
 
     if (setToMin) {
       targetOffsetX = -minX;
-      targetOffsetY = -minY;
       offsetX = targetOffsetX;
-      offsetY = targetOffsetY;
     } else {
       targetOffsetX = Math.max(Math.min(targetOffsetX - (deltaX * sensitivity), -minX), -maxX);
-      targetOffsetY = Math.max(Math.min(targetOffsetY - (deltaY * sensitivity), -minY), -maxY);
     }
   };
 
@@ -159,13 +149,14 @@ const runSimulation = (canvas, data, options = {}) => {
   const canNodeBeDrawn = (node) => {
     const { root } = node;
     const { left } = canvasBoundingBox;
+    const zoom = getZoom();
 
     if (node.rootNode || (node.root && node.root.hasBeenVisible)) {
       return true;
     }
 
     if (root) {
-      const leftMostX = left + root.x + offsetX;
+      const leftMostX = (left + root.x + offsetX) * zoom;
 
       if (root.animationFinished && leftMostX >= 0 && leftMostX <= window.innerWidth) {
         root.hasBeenVisible = true;
@@ -277,13 +268,15 @@ const runSimulation = (canvas, data, options = {}) => {
   };
 
   // Draws a line between twp nodes
-  const drawLink = (d, lerp = 1) => {
+  const drawLink = (d, lerp, isMobileSize) => {
+    const zoom = getZoom();
     let { x, y } = d.target;
     const distanceVector = {
       x: x - d.source.x,
       y: y - d.source.y,
     };
     const distance = Math.sqrt((distanceVector.x ** 2) + (distanceVector.y ** 2));
+    const borderDistance = BORDER_DISTANCE + DOTTED_BORDER_THICKNESS;
 
     if (distance < d.source.currentRadius + d.target.currentRadius) {
       return null;
@@ -299,8 +292,8 @@ const runSimulation = (canvas, data, options = {}) => {
     }
 
     const borderDisplacement = {
-      x: distanceVector.x * (BORDER_DISTANCE + DOTTED_BORDER_THICKNESS),
-      y: distanceVector.y * (BORDER_DISTANCE + DOTTED_BORDER_THICKNESS),
+      x: distanceVector.x * borderDistance,
+      y: distanceVector.y * borderDistance,
     };
     const sourceDisplacement = {
       x: d.source.currentRadius * distanceVector.x,
@@ -312,13 +305,23 @@ const runSimulation = (canvas, data, options = {}) => {
     };
 
     const start = {
-      x: offsetX + d.source.x + sourceDisplacement.x + borderDisplacement.x,
-      y: offsetY + d.source.y + sourceDisplacement.y + borderDisplacement.y,
+      x: (offsetX + d.source.x + sourceDisplacement.x) * zoom,
+      y: (d.source.y + sourceDisplacement.y) * zoom,
     };
     const end = {
-      x: offsetX + x - targetDisplacement.x - borderDisplacement.x,
-      y: offsetY + y - targetDisplacement.y - borderDisplacement.y,
+      x: (offsetX + x - targetDisplacement.x) * zoom,
+      y: (y - targetDisplacement.y) * zoom,
     };
+
+    if (!isMobileSize || !d.source.rootNode) {
+      start.x += borderDisplacement.x;
+      start.y += borderDisplacement.y;
+    }
+
+    if (!isMobileSize || !d.target.rootNode) {
+      end.x -= borderDisplacement.x;
+      end.y -= borderDisplacement.y;
+    }
 
     context.moveTo(start.x, start.y);
     context.lineTo(end.x, end.y);
@@ -328,6 +331,7 @@ const runSimulation = (canvas, data, options = {}) => {
 
   // Draws a node (circle)
   const drawNode = (d, extraRadius = 0) => {
+    const zoom = getZoom();
     let { currentRadius } = d;
 
     if (nodesAnimating.includes(d)) {
@@ -336,24 +340,27 @@ const runSimulation = (canvas, data, options = {}) => {
       currentRadius += extraRadius;
     }
 
-    context.moveTo(offsetX + d.x + currentRadius, offsetY + d.y);
-    context.arc(offsetX + d.x, offsetY + d.y, currentRadius, 0, 2 * Math.PI, false);
+    context.moveTo((offsetX + d.x + currentRadius) * zoom, d.y * zoom);
+    context.arc((offsetX + d.x) * zoom, d.y * zoom, currentRadius * zoom, 0, 2 * Math.PI, false);
   };
 
   // Draws text inside a node
   const drawText = (d) => {
-    const fontSize = fontSizes[d.size];
-    const maxWidth = (d.radius * 2) - TEXT_PADDING;
+    const zoom = getZoom();
+    const fontSize = fontSizes[d.size] * zoom;
+    const maxWidth = (d.currentRadius * 2 * zoom) - TEXT_PADDING;
     const words = d.id.split(' ');
     const allLines = [];
     let currentWord = words[0];
     let i = 0;
 
+    context.font = `normal normal 500 ${fontSize}px ${fontFamily}`;
+
     while (i <= words.length - 1) {
       if (i < words.length - 1) {
         const possibleSentence = `${currentWord} ${words[i + 1]}`;
 
-        if (context.measureText(possibleSentence).width <= maxWidth - TEXT_PADDING) {
+        if (context.measureText(possibleSentence).width <= maxWidth) {
           currentWord = possibleSentence;
         } else {
           allLines.push(currentWord);
@@ -367,16 +374,26 @@ const runSimulation = (canvas, data, options = {}) => {
     }
 
     const drawTextWithOffset = (text, offset) => {
-      context.fillText(text, offsetX + d.x, offsetY + d.y + offset);
+      context.fillText(text, (offsetX + d.x) * zoom, (d.y + offset) * zoom);
     };
     const totalHeight = allLines.length * fontSize;
     const halfHeight = totalHeight / 4;
 
     allLines.forEach((line, index) => {
-      const offset = (index / allLines.length) * totalHeight;
+      const offset = ((index / allLines.length) * totalHeight) * (1 / zoom);
 
       drawTextWithOffset(line, allLines.length > 1 ? offset - halfHeight : 0);
     });
+  };
+
+  const drawIcon = (d) => {
+    const zoom = getZoom();
+    const x = ((offsetX + d.x) * zoom) - (d.icon.width / 2);
+    const y = (d.y * zoom) - (d.icon.height / 2);
+
+    if (d.icon) {
+      context.drawImage(d.icon, x, y);
+    }
   };
 
   // Called when an animation step has been finished
@@ -454,12 +471,10 @@ const runSimulation = (canvas, data, options = {}) => {
 
   const onProcessTick = () => {
     const offsetXChange = (targetOffsetX - offsetX) * SCROLL_LERPING_SMOOTH;
-    const offsetYChange = (targetOffsetY - offsetY) * SCROLL_LERPING_SMOOTH;
     const absoluteOffsetXChange = Math.abs(offsetXChange);
     const minimumEffectiveScroll = 0.5;
 
     offsetX = absoluteOffsetXChange > minimumEffectiveScroll ? offsetX + offsetXChange : targetOffsetX;
-    offsetY = absoluteOffsetXChange > minimumEffectiveScroll ? offsetY + offsetYChange : targetOffsetY;
 
     if (absoluteOffsetXChange <= minimumEffectiveScroll && scrolling) {
       checkForNewNodes();
@@ -496,11 +511,16 @@ const runSimulation = (canvas, data, options = {}) => {
   const onDrawTick = () => {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    const zoom = getZoom();
+    const isMobileSize = canvas.offsetHeight <= breakpointHeight;
+
     stageNodesByRoot.sortedRoots.forEach((rootNode) => {
       const nodesToDraw = stageNodesByRoot[rootNode.id];
 
       nodesToDraw.forEach((node) => {
-        let radius = nodeSizes[node.size];
+        const mobileIndex = node.size === 0 ? 0 : nodeSizes.length - 1;
+        const index = isMobileSize ? mobileIndex : node.size;
+        let radius = nodeSizes[index];
 
         if (nodesAnimating.includes(node)) {
           const ticksRatio = getLerpingValue(stageTicksLeft);
@@ -514,24 +534,24 @@ const runSimulation = (canvas, data, options = {}) => {
 
     // Draw all the regular dashed lines
     context.beginPath();
-    stageLinksByType.normal.forEach(d => drawLink(d));
-    linksAnimating.forEach(d => drawLink(d, getLerpingValue(stageTicksLeft)));
+    stageLinksByType.normal.forEach(d => drawLink(d, 1, isMobileSize));
+    linksAnimating.forEach(d => drawLink(d, getLerpingValue(stageTicksLeft), isMobileSize));
     // Fix the bug where canvas stretches or doesn't draw the last line properly
     context.moveTo(0, 0);
     context.lineTo(0, 0);
     context.setLineDash([4, 3]);
     context.strokeStyle = linkLineColor;
-    context.lineWidth = 2;
+    context.lineWidth = NODE_BORDER_WIDTH;
     context.closePath();
     context.stroke();
 
     // Draw all the solid lines connecting the roots
     context.setLineDash([]);
-    context.lineWidth = 6;
+    context.lineWidth = isMobileSize ? ROOT_NODE_LINK_LINE_WIDTH / 2 : ROOT_NODE_LINK_LINE_WIDTH;
     stageLinksByType.root.forEach((link) => {
       context.beginPath();
 
-      const path = drawLink(link);
+      const path = drawLink(link, 1, isMobileSize);
 
       if (!path) {
         return;
@@ -550,24 +570,27 @@ const runSimulation = (canvas, data, options = {}) => {
     // Draw all borders
     stageNodesByRoot.sortedRoots.forEach((rootNode) => {
       const nodesToDraw = stageNodesByRoot[rootNode.id];
+      const borderDistance = Math.min(Math.max(BORDER_DISTANCE * (1 / zoom), 3), 4);
 
       // Dotted borders
       context.strokeStyle = linkLineColor;
-      context.lineWidth = DOTTED_BORDER_THICKNESS;
+      context.lineWidth = NODE_BORDER_WIDTH;
       context.setLineDash([4, 3]);
       context.beginPath();
-      nodesToDraw.forEach(d => !d.rootNode && drawNode(d, BORDER_DISTANCE));
+      nodesToDraw.forEach(d => !d.rootNode && drawNode(d, borderDistance));
       context.closePath();
       context.stroke();
 
-      // Solid borders
-      context.strokeStyle = rootNode.color;
-      context.lineWidth = SOLID_BORDER_THICKNESS;
-      context.setLineDash([]);
-      context.beginPath();
-      drawNode(rootNode, BORDER_DISTANCE);
-      context.closePath();
-      context.stroke();
+      if (!isMobileSize) {
+        // Solid borders
+        context.strokeStyle = rootNode.color;
+        context.lineWidth = NODE_BORDER_WIDTH;
+        context.setLineDash([]);
+        context.beginPath();
+        drawNode(rootNode, borderDistance);
+        context.closePath();
+        context.stroke();
+      }
 
       // Draw nodes
       context.fillStyle = rootNode.color ? rootNode.color : '#000';
@@ -582,10 +605,11 @@ const runSimulation = (canvas, data, options = {}) => {
       context.textBaseline = 'middle';
       nodesToDraw.forEach((node) => {
         if (node.animationFinished) {
-          const fontSize = fontSizes[node.size];
-
-          context.font = `normal normal 500 ${fontSize}px ${fontFamily}`;
-          drawText(node);
+          if (!isMobileSize || !node.icon) {
+            drawText(node);
+          } else {
+            drawIcon(node);
+          }
         }
       });
     });
