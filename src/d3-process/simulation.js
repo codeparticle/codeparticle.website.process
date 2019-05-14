@@ -15,7 +15,6 @@ import {
   NODE_BORDER_WIDTH,
   ROOT_NODE_LINK_LINE_WIDTH,
   ROOT_NODE_SELECTION_SCROLL_LERPING_SMOOTH,
-  ROOT_NODE_X_DISTANCE,
   SCROLL_LERPING_SMOOTH,
   TEXT_PADDING,
   TICKS_PER_STAGE,
@@ -35,8 +34,10 @@ let windowScrollListener = null;
  * @param {HTMLElement} canvas - Canvas to play the animation on
  * @param {Object} data - Data object to parse and generate nodes from
  * @param {Object} options - {
+ *  @param {boolean} breakpointHeight - Height at which canvas is converted into a mobile layout (Canvas height, not window)
  *  @param {boolean} disableCanvasScrolling - When true, the canvas will not have a scroll event that intercepts the browsers' scroll
  *  @param {string} fontFamily - Font family of the text on top of the nodes
+ *  @param {string} disableRootNodeSelectionOnScroll - When true, the root node selection does not change when the canvas is scrolled
  *  @param {number} fontSizes - Font sizes of the text on top of the nodes
  *  @param {Object} icons - Icons to be displayed on top of nodes (property names must match to the node.icon field)
  *  @param {string} linkLineColor - Color of the dotted line connecting the nodes
@@ -54,8 +55,9 @@ let windowScrollListener = null;
  */
 const runSimulation = (canvas, data, options = {}) => {
   const {
-    disableCanvasScrolling = false,
     breakpointHeight = DEFAULT_BREAKPOINT_HEIGHT,
+    disableCanvasScrolling = false,
+    disableRootNodeSelectionOnScroll = false,
     fontFamily = DEFAULT_TEXT_FONT_FAMILY,
     fontSizes = DEFAULT_FONT_SIZES,
     icons = {},
@@ -132,14 +134,13 @@ const runSimulation = (canvas, data, options = {}) => {
     const { left: parentLeft } = canvas.parentElement.getBoundingClientRect();
     const { left } = canvas.getBoundingClientRect();
     const sensitivity = scrollSensitivity / 2;
+    const maxVisibleWidth = ((rightMostNode.finalX + rightMostNode.radius) * getZoom()) + AXIS_PADDING;
     let minX = left - parentLeft;
-    let maxX = rightMostNode.targetX + rightMostNode.radius - ROOT_NODE_X_DISTANCE;
+    let maxX = maxVisibleWidth - canvas.offsetWidth;
 
-    if (left > parentLeft) {
+    if (left > parentLeft || maxVisibleWidth <= canvas.offsetWidth) {
       minX = 0;
       maxX = 0;
-    } else if (ROOT_NODE_X_DISTANCE > canvas.offsetWidth) {
-      maxX += ROOT_NODE_X_DISTANCE - canvas.offsetWidth + AXIS_PADDING;
     }
 
     if (setToMin) {
@@ -161,7 +162,7 @@ const runSimulation = (canvas, data, options = {}) => {
     }
 
     if (root) {
-      const leftMostX = (left + root.x + offsetX) * zoom;
+      const leftMostX = offsetX + ((left + root.x) * zoom);
 
       if (root.animationFinished && leftMostX >= 0 && leftMostX <= window.innerWidth) {
         root.hasBeenVisible = true;
@@ -249,7 +250,7 @@ const runSimulation = (canvas, data, options = {}) => {
 
     rootNodes.forEach((node) => {
       if (node.rootNode) {
-        const x = canvasBoundingBox.left + node.targetX + offsetX;
+        const x = canvasBoundingBox.left + (node.finalX || node.targetX) + offsetX;
         const nodeIsVisibleOnSelectionViewport = x >= canvasBoundingBox.left;
 
         if (!foundFirstRootNodeVisible && nodeIsVisibleOnSelectionViewport) {
@@ -264,7 +265,7 @@ const runSimulation = (canvas, data, options = {}) => {
     });
 
     const manuallySelectingRootNode = targetRootNodeToSelect && targetRootNodeToSelect.id === selectedRootNode.id;
-    const scrollSelectingRootNode = !targetRootNodeToSelect && previousSelectedRootNode !== selectedRootNode;
+    const scrollSelectingRootNode = !disableRootNodeSelectionOnScroll && !targetRootNodeToSelect && previousSelectedRootNode !== selectedRootNode;
 
     if (manuallySelectingRootNode || scrollSelectingRootNode) {
       previousSelectedRootNode = selectedRootNode;
@@ -313,11 +314,11 @@ const runSimulation = (canvas, data, options = {}) => {
     };
 
     const start = {
-      x: (offsetX + d.source.x + sourceDisplacement.x) * zoom,
+      x: offsetX + ((d.source.x + sourceDisplacement.x) * zoom),
       y: (d.source.y + sourceDisplacement.y) * zoom,
     };
     const end = {
-      x: (offsetX + x - targetDisplacement.x) * zoom,
+      x: offsetX + ((x - targetDisplacement.x) * zoom),
       y: (y - targetDisplacement.y) * zoom,
     };
 
@@ -348,8 +349,8 @@ const runSimulation = (canvas, data, options = {}) => {
       currentRadius += extraRadius;
     }
 
-    context.moveTo((offsetX + d.x + currentRadius) * zoom, d.y * zoom);
-    context.arc((offsetX + d.x) * zoom, d.y * zoom, currentRadius * zoom, 0, 2 * Math.PI, false);
+    context.moveTo(offsetX + ((d.x + currentRadius) * zoom), d.y * zoom);
+    context.arc(offsetX + (d.x * zoom), d.y * zoom, currentRadius * zoom, 0, 2 * Math.PI, false);
   };
 
   // Draws text inside a node
@@ -383,7 +384,7 @@ const runSimulation = (canvas, data, options = {}) => {
     }
 
     const drawTextWithOffset = (text, offset) => {
-      context.fillText(text, (offsetX + d.x) * zoom, (d.y + offset) * zoom);
+      context.fillText(text, offsetX + (d.x * zoom), (d.y + offset) * zoom);
     };
     const totalHeight = allLines.length * fontSize;
     const halfHeight = totalHeight / 4;
@@ -397,7 +398,7 @@ const runSimulation = (canvas, data, options = {}) => {
 
   const drawIcon = (d) => {
     const zoom = getZoom();
-    const x = ((offsetX + d.x) * zoom) - (d.icon.width / 2);
+    const x = (offsetX + (d.x * zoom)) - (d.icon.width / 2);
     const y = (d.y * zoom) - (d.icon.height / 2);
 
     if (d.icon) {
@@ -481,7 +482,7 @@ const runSimulation = (canvas, data, options = {}) => {
   const onProcessTick = () => {
     const smooth = targetRootNodeToSelect ? ROOT_NODE_SELECTION_SCROLL_LERPING_SMOOTH : SCROLL_LERPING_SMOOTH;
     const startingOffsetX = targetRootNodeToSelect ? initialXWhenSelectingRootNode : offsetX;
-    const offsetXChange = (targetOffsetX - startingOffsetX) * smooth;
+    const offsetXChange = (targetOffsetX - startingOffsetX) * smooth * getZoom();
     const absoluteOffsetXChange = Math.abs(offsetXChange);
     const minimumEffectiveScroll = 0.5;
 
@@ -710,11 +711,12 @@ const runSimulation = (canvas, data, options = {}) => {
     const nodeById = rootNodes.find(node => node.id === id);
 
     if (nodeById) {
-      const maxX = rightMostNode.x - window.innerWidth + canvas.getBoundingClientRect().left + AXIS_PADDING + ROOT_NODE_X_DISTANCE;
+      const maxVisibleWidth = ((rightMostNode.finalX + rightMostNode.radius) * getZoom()) + AXIS_PADDING;
+      const maxX = maxVisibleWidth - canvas.offsetWidth;
 
       initialXWhenSelectingRootNode = offsetX;
       targetRootNodeToSelect = nodeById;
-      targetOffsetX = Math.max(-(getLeftMostChildX(nodeById) - AXIS_PADDING), -maxX);
+      targetOffsetX = Math.min(Math.max(-(getLeftMostChildX(nodeById) - AXIS_PADDING), -maxX), 0);
       reheatSimulation();
 
       listeners[EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE].forEach((callback) => {
