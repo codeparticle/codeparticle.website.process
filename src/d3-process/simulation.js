@@ -13,6 +13,7 @@ import {
   EVENT_TYPES,
   NODE_BORDER_WIDTH,
   ROOT_NODE_LINK_LINE_WIDTH,
+  ROOT_NODE_SELECTION_SCROLL_LERPING_SMOOTH,
   ROOT_NODE_X_DISTANCE,
   SCROLL_LERPING_SMOOTH,
   TEXT_PADDING,
@@ -77,6 +78,8 @@ const runSimulation = (canvas, data, options = {}) => {
   let nodesAnimating = [];
   let rootNodesToAnimateFromNextStage = [];
   let linksAnimating = [];
+  let initialXWhenSelectingRootNode = 0;
+  let targetRootNodeToSelect = null;
   let offsetX = 0;
   let targetOffsetX = 0;
   let rightMostNode = 0;
@@ -252,13 +255,16 @@ const runSimulation = (canvas, data, options = {}) => {
           selectedRootNode = node;
         }
 
-        if (!node.hasBeenVisible && node.animationFinished) {
+        if (!targetRootNodeToSelect && (!node.hasBeenVisible && node.animationFinished)) {
           rootNodesToAnimateFromNextStage.push(node);
         }
       }
     });
 
-    if (previousSelectedRootNode !== selectedRootNode) {
+    const manuallySelectingRootNode = targetRootNodeToSelect && targetRootNodeToSelect.id === selectedRootNode.id;
+    const scrollSelectingRootNode = !targetRootNodeToSelect && previousSelectedRootNode !== selectedRootNode;
+
+    if (manuallySelectingRootNode || scrollSelectingRootNode) {
       previousSelectedRootNode = selectedRootNode;
 
       listeners[EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE].forEach((callback) => {
@@ -470,17 +476,26 @@ const runSimulation = (canvas, data, options = {}) => {
   };
 
   const onProcessTick = () => {
-    const offsetXChange = (targetOffsetX - offsetX) * SCROLL_LERPING_SMOOTH;
+    const smooth = targetRootNodeToSelect ? ROOT_NODE_SELECTION_SCROLL_LERPING_SMOOTH : SCROLL_LERPING_SMOOTH;
+    const startingOffsetX = targetRootNodeToSelect ? initialXWhenSelectingRootNode : offsetX;
+    const offsetXChange = (targetOffsetX - startingOffsetX) * smooth;
     const absoluteOffsetXChange = Math.abs(offsetXChange);
     const minimumEffectiveScroll = 0.5;
 
     offsetX = absoluteOffsetXChange > minimumEffectiveScroll ? offsetX + offsetXChange : targetOffsetX;
 
-    if (absoluteOffsetXChange <= minimumEffectiveScroll && scrolling) {
-      checkForNewNodes();
+    if (scrolling) {
+      if ((offsetXChange < 0 && offsetX < targetOffsetX) || (offsetXChange >= 0 && offsetX > targetOffsetX)) {
+        offsetX = targetOffsetX;
+      }
 
-      if (!nodesAnimating.length && !linksAnimating.length) {
-        onStageFinished();
+      if (absoluteOffsetXChange <= minimumEffectiveScroll || offsetX === targetOffsetX) {
+        targetRootNodeToSelect = null;
+        checkForNewNodes();
+
+        if (!nodesAnimating.length && !linksAnimating.length) {
+          onStageFinished();
+        }
       }
     }
 
@@ -674,6 +689,7 @@ const runSimulation = (canvas, data, options = {}) => {
     canvas.addEventListener('wheel', function _onCanvasWheel(event) {
       event.preventDefault();
       canvasWheelListener = _onCanvasWheel;
+      targetRootNodeToSelect = null;
 
       checkForNewNodes();
       setOffsets(false, event);
@@ -694,6 +710,8 @@ const runSimulation = (canvas, data, options = {}) => {
     if (nodeById) {
       const maxX = rightMostNode.x - window.innerWidth + canvas.getBoundingClientRect().left + AXIS_PADDING + ROOT_NODE_X_DISTANCE;
 
+      initialXWhenSelectingRootNode = offsetX;
+      targetRootNodeToSelect = nodeById;
       targetOffsetX = Math.max(-(getLeftMostChildX(nodeById) - AXIS_PADDING), -maxX);
       reheatSimulation();
 
