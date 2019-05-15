@@ -1,6 +1,5 @@
 export const AXIS_PADDING = 40;
 export const BORDER_DISTANCE = 3;
-export const DEFAULT_BREAKPOINT_HEIGHT = 400;
 export const DEFAULT_FONT_SIZES = [20, 16, 14];
 export const DEFAULT_LINK_BASE_COLOR = '#BBC7D4';
 export const DEFAULT_NODE_TITLE_BASE_COLOR = '#FFFFFF';

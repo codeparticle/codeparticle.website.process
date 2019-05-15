@@ -83,6 +83,8 @@ const App = () => {
 
     if (canvasRef.current && !simulation) {
       startedSimulation = runSimulation(canvasRef.current, processData, {
+        breakpointHeight: 500,
+        breakpointWidth: 500,
         icons,
         simulationMaxHeight: 800,
       });

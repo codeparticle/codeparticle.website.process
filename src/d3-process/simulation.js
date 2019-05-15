@@ -3,7 +3,6 @@ import { forceSimulation, forceLink } from 'd3-force';
 import {
   AXIS_PADDING,
   BORDER_DISTANCE,
-  DEFAULT_BREAKPOINT_HEIGHT,
   DEFAULT_FONT_SIZES,
   DEFAULT_LINK_BASE_COLOR,
   DEFAULT_NODE_TITLE_BASE_COLOR,
@@ -35,9 +34,12 @@ let windowScrollListener = null;
  * @param {Object} data - Data object to parse and generate nodes from
  * @param {Object} options - {
  *  @param {boolean} breakpointHeight - Height at which canvas is converted into a mobile layout (Canvas height, not window)
+ *  @param {boolean} breakpointWidth - Width at which canvas is converted into a mobile layout (Canvas width, not window)
  *  @param {boolean} disableCanvasScrolling - When true, the canvas will not have a scroll event that intercepts the browsers' scroll
+ *  @param {boolean} disableRootNodeSelectionOnScroll - When true, the root node selection does not change when the canvas is scrolled
+ *  @param {boolean} expandOnlyOnSelected - When true, nodes will only expand when they are selected
  *  @param {string} fontFamily - Font family of the text on top of the nodes
- *  @param {string} disableRootNodeSelectionOnScroll - When true, the root node selection does not change when the canvas is scrolled
+ *  @param {string} focusSelectedRootNodeOnResize - When false, selected root nodes will not be automatically focused on window resize
  *  @param {number} fontSizes - Font sizes of the text on top of the nodes
  *  @param {Object} icons - Icons to be displayed on top of nodes (property names must match to the node.icon field)
  *  @param {string} linkLineColor - Color of the dotted line connecting the nodes
@@ -55,12 +57,14 @@ let windowScrollListener = null;
  */
 const runSimulation = (canvas, data, options = {}) => {
   const {
-    breakpointHeight = DEFAULT_BREAKPOINT_HEIGHT,
-    disableCanvasScrolling = true,
+    breakpointHeight = null,
+    breakpointWidth = null,
+    disableCanvasScrolling = false,
     disableRootNodeSelectionOnScroll = false,
+    expandOnlyOnSelected = false,
+    focusSelectedRootNodeOnResize = true,
     fontFamily = DEFAULT_TEXT_FONT_FAMILY,
     fontSizes = DEFAULT_FONT_SIZES,
-    expandOnlyOnSelected = true,
     icons = {},
     linkLineColor = DEFAULT_LINK_BASE_COLOR,
     nodeSizes = DEFAULT_SIZES,
@@ -117,7 +121,19 @@ const runSimulation = (canvas, data, options = {}) => {
     node.fy = null;
   });
 
+  const isMobile = () => (
+    (breakpointHeight !== null && canvas.offsetHeight <= breakpointHeight)
+    || ((breakpointWidth !== null && canvas.offsetWidth <= breakpointWidth))
+  );
   const getZoom = () => Math.min(canvas.offsetHeight / simulationMaxHeight, 1);
+
+  const getTargetNodeOffsetX = (node) => {
+    const zoom = getZoom();
+    const maxVisibleWidth = ((rightMostNode.finalX + rightMostNode.radius) * zoom) + AXIS_PADDING;
+    const maxX = maxVisibleWidth - canvas.offsetWidth;
+
+    return Math.min(Math.max(-(getLeftMostChildX(node) - AXIS_PADDING) * zoom, -maxX), 0);
+  };
 
   const reCenterNodes = () => {
     (nodes || []).forEach((node) => {
@@ -248,25 +264,29 @@ const runSimulation = (canvas, data, options = {}) => {
   nodesAnimating.forEach(pushStageNode);
 
   const checkForNewNodes = () => {
+    const previousSelectedRootNode = selectedRootNode;
     let foundFirstRootNodeVisible = false;
-    let previousSelectedRootNode = selectedRootNode;
 
     canvasBoundingBox = canvas.getBoundingClientRect();
     rootNodesToAnimateFromNextStage = [];
 
     rootNodes.forEach((node) => {
       if (node.rootNode) {
-        const x = canvasBoundingBox.left + (node.finalX || node.targetX) + offsetX;
-        const nodeIsVisibleOnSelectionViewport = x >= canvasBoundingBox.left;
+        if (!disableRootNodeSelectionOnScroll) {
+          const nodeX = (node.finalX || node.targetX) * getZoom();
+          const x = canvasBoundingBox.left + nodeX + offsetX;
+          const nodeIsVisibleOnSelectionViewport = x >= canvasBoundingBox.left;
+
+          if (!foundFirstRootNodeVisible && nodeIsVisibleOnSelectionViewport) {
+            foundFirstRootNodeVisible = true;
+            selectedRootNode = node;
+          }
+        }
+
         const distanceLeftToScroll = offsetX - targetOffsetX;
         const canAnimateIfExpandOnlyOnSelectedFalse = !expandOnlyOnSelected
           && !targetRootNodeToSelect && (!node.hasBeenVisible && node.animationFinished);
         const canAnimateIfExpandOnlyOnSelectedTrue = expandOnlyOnSelected && Math.abs(distanceLeftToScroll) <= 1 && node.hasBeenSelected;
-
-        if (!foundFirstRootNodeVisible && nodeIsVisibleOnSelectionViewport) {
-          foundFirstRootNodeVisible = true;
-          selectedRootNode = node;
-        }
 
         if (canAnimateIfExpandOnlyOnSelectedFalse || canAnimateIfExpandOnlyOnSelectedTrue) {
           rootNodesToAnimateFromNextStage.push(node);
@@ -274,12 +294,10 @@ const runSimulation = (canvas, data, options = {}) => {
       }
     });
 
-    const manuallySelectingRootNode = targetRootNodeToSelect && targetRootNodeToSelect.id === selectedRootNode.id;
+    const manuallySelectingRootNode = targetRootNodeToSelect && previousSelectedRootNode.id !== targetRootNodeToSelect.id;
     const scrollSelectingRootNode = !disableRootNodeSelectionOnScroll && !targetRootNodeToSelect && previousSelectedRootNode !== selectedRootNode;
 
     if (manuallySelectingRootNode || scrollSelectingRootNode) {
-      previousSelectedRootNode = selectedRootNode;
-
       listeners[EVENT_TYPES.SELECTED_ROOT_NODE_CHANGE].forEach((callback) => {
         callback(selectedRootNode);
       });
@@ -508,8 +526,8 @@ const runSimulation = (canvas, data, options = {}) => {
       }
 
       if (absoluteOffsetXChange <= minimumEffectiveScroll || offsetX === targetOffsetX) {
-        checkForNewNodes();
         targetRootNodeToSelect = null;
+        checkForNewNodes();
 
         if (!nodesAnimating.length && !linksAnimating.length) {
           onStageFinished();
@@ -548,7 +566,7 @@ const runSimulation = (canvas, data, options = {}) => {
     context.clearRect(0, 0, canvas.width, canvas.height);
 
     const zoom = getZoom();
-    const isMobileSize = canvas.offsetHeight <= breakpointHeight;
+    const isMobileSize = isMobile();
 
     stageNodesByRoot.sortedRoots.forEach((rootNode) => {
       const nodesToDraw = stageNodesByRoot[rootNode.id];
@@ -700,6 +718,14 @@ const runSimulation = (canvas, data, options = {}) => {
     onWindowResizeOrScroll();
     setOffsets(false);
     reCenterNodes();
+
+    if (selectedRootNode && focusSelectedRootNodeOnResize) {
+      targetOffsetX = getTargetNodeOffsetX(selectedRootNode);
+
+      setTimeout(() => {
+        targetOffsetX = getTargetNodeOffsetX(selectedRootNode);
+      });
+    }
   });
 
   window.addEventListener('scroll', function _onWindowScroll() {
@@ -731,16 +757,13 @@ const runSimulation = (canvas, data, options = {}) => {
   simulation.getSelectedRootNode = () => selectedRootNode;
   simulation.setSelectedRootNode = (id) => {
     const nodeById = rootNodes.find(node => node.id === id);
-    const zoom = getZoom();
 
     if (nodeById) {
-      const maxVisibleWidth = ((rightMostNode.finalX + rightMostNode.radius) * zoom) + AXIS_PADDING;
-      const maxX = maxVisibleWidth - canvas.offsetWidth;
-
+      targetOffsetX = getTargetNodeOffsetX(nodeById);
       nodeById.hasBeenSelected = true;
       initialXWhenSelectingRootNode = offsetX;
       targetRootNodeToSelect = nodeById;
-      targetOffsetX = Math.min(Math.max(-(getLeftMostChildX(nodeById) - AXIS_PADDING) * zoom, -maxX), 0);
+      selectedRootNode = nodeById;
       reheatSimulation();
 
       if (expandOnlyOnSelected) {
