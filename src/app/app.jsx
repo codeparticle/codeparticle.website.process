@@ -7,6 +7,59 @@ import React, {
 import { EVENT_TYPES, runSimulation } from 'd3-process';
 import processData from './data.json';
 import './app.scss';
+import {
+  IconAlpha,
+  IconArchitecture,
+  IconBackup,
+  IconBeta,
+  IconBugs,
+  IconComponentImplementation,
+  IconDeployment,
+  IconDevOps,
+  IconDownServer,
+  IconFeedback,
+  IconFinal,
+  IconLogs,
+  IconMonitoring,
+  IconPlatform,
+  IconPushFixes,
+  IconResearch,
+  IconRisk,
+  IconScope,
+  IconSpeed,
+  IconStrategy,
+  IconTasks,
+  IconTechnical,
+  IconTesting,
+  IconUiux,
+} from './icons';
+
+const icons = {
+  alpha: IconAlpha,
+  architecture: IconArchitecture,
+  backup: IconBackup,
+  beta: IconBeta,
+  bugs: IconBugs,
+  componentImplementation: IconComponentImplementation,
+  deployment: IconDeployment,
+  devOps: IconDevOps,
+  downServer: IconDownServer,
+  feedback: IconFeedback,
+  final: IconFinal,
+  logs: IconLogs,
+  monitoring: IconMonitoring,
+  platform: IconPlatform,
+  pushFixes: IconPushFixes,
+  research: IconResearch,
+  risk: IconRisk,
+  scope: IconScope,
+  speed: IconSpeed,
+  strategy: IconStrategy,
+  technical: IconTechnical,
+  tasks: IconTasks,
+  testing: IconTesting,
+  uiux: IconUiux,
+};
 
 const App = () => {
   const canvasRef = useRef();
@@ -30,6 +83,9 @@ const App = () => {
 
     if (canvasRef.current && !simulation) {
       startedSimulation = runSimulation(canvasRef.current, processData, {
+        breakpointHeight: 500,
+        breakpointWidth: 500,
+        icons,
         simulationMaxHeight: 800,
       });
 

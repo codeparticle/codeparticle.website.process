@@ -7,15 +7,18 @@
       "children": [
         {
           "title": "Target",
+          "icon": "scope",
           "size": 1,
           "children": [
             {
               "title": "Risk",
+              "icon": "risk",
               "size": 2,
               "links": ["R&D"]
             },
             {
               "title": "Platform",
+              "icon": "platform",
               "size": 2,
               "links": ["R&D"]
             }
@@ -23,6 +26,7 @@
         },
         {
           "title": "Strategy",
+          "icon": "strategy",
           "size": 2,
           "links": ["Technical", "Testing2"]
         }
@@ -35,21 +39,25 @@
       "children": [
         {
           "title": "R&D",
+          "icon": "research",
           "size": 2,
           "children": []
         },
         {
           "title": "Technical",
+          "icon": "technical",
           "size": 2,
           "links": ["Strategy"]
         },
         {
           "title": "Initial Architecture",
+          "icon": "architecture",
           "size": 1,
           "children": []
         },
         {
           "title": "Testing2",
+          "icon": "testing",
           "size": 2,
           "links": ["Strategy"]
         }
@@ -62,15 +70,18 @@
       "children": [
         {
           "title": "UI/UX",
+          "icon": "uiux",
           "size": 2,
           "children": []
         },
         {
           "title": "Component Implementation",
+          "icon": "componentImplementation",
           "size": 1,
           "children": [
             {
               "title": "Testing",
+              "icon": "testing",
               "size": 2,
               "links": ["Final Testing"]
             }
@@ -78,6 +89,7 @@
         },
         {
           "title": "Dev Ops",
+          "icon": "devOps",
           "size": 1,
           "children": []
         }
@@ -90,18 +102,22 @@
       "children": [
         {
           "title": "Deployment",
+          "icon": "deployment",
           "size": 1,
           "children": [
             {
               "title": "Alpha",
+              "icon": "alpha",
               "size": 2,
               "children": [
                 {
                   "title": "Beta",
+                  "icon": "beta",
                   "size": 2,
                   "children": [
                     {
                       "title": "Final",
+                      "icon": "final",
                       "size": 2,
                       "links": ["Monitoring"]
                     }
@@ -113,16 +129,19 @@
         },
         {
           "title": "Final Testing",
+          "icon": "testing",
           "size": 2,
           "links": ["Address Bugs", "Testing"]
         },
         {
           "title": "Address Bugs",
+          "icon": "bugs",
           "size": 1,
           "links": ["Final Testing"]
         },
         {
           "title": "Push Fixes",
+          "icon": "pushFixes",
           "size": 2,
           "links": ["Review Feedback"]
         }
@@ -135,23 +154,50 @@
       "children": [
         {
           "title": "Monitoring",
+          "icon": "monitoring",
           "size": 1,
           "links": ["Final"],
           "children": [
             {
               "title": "Speed",
+              "icon": "speed",
               "size": 2
             },
             {
               "title": "Logs",
+              "icon": "logs",
               "size": 2
             }
           ]
         },
         {
           "title": "Review Feedback",
+          "icon": "feedback",
           "size": 1,
           "links": ["Push Fixes"]
+        }
+      ]
+    },
+    {
+      "title": "Retirement",
+      "size": 0,
+      "color": "#FFFFFF",
+      "fontColor": "#9CA8B5",
+      "children": [
+        {
+          "title": "Backup",
+          "icon": "backup",
+          "size": 2
+        },
+        {
+          "title": "Tasks",
+          "icon": "tasks",
+          "size": 2
+        },
+        {
+          "title": "Down Server",
+          "icon": "downServer",
+          "size": 2
         }
       ]
     }
