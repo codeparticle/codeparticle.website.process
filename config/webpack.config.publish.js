@@ -1,6 +1,7 @@
 const CopyPkgJsonPlugin = require('copy-pkg-json-webpack-plugin');
 const webpack = require('webpack');
 const paths = require('./paths');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
   entry: paths.d3ProcessIndexJs,
@@ -28,7 +29,7 @@ module.exports = {
     ],
   },
   plugins: [
-    new webpack.optimize.UglifyJsPlugin({
+    new UglifyJsPlugin({
       sourceMap: true,
     }),
     new CopyPkgJsonPlugin({
