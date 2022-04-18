@@ -35,7 +35,7 @@
     "connected-react-router": "^4.3.0",
     "copy-pkg-json-webpack-plugin": "^0.0.38",
     "css-loader": "^0.28.9",
-    "d3-force": "^2.0.1",
+    "d3-force": "^3.0.0",
     "decode-uri-component": "^0.2.0",
     "dotenv": "4.0.0",
     "dotenv-expand": "4.2.0",
