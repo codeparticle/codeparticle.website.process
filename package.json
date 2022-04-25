@@ -15,7 +15,7 @@
   ],
   "homepage": "https://github.com/codeparticle/codeparticle.website.process",
   "dependencies": {
-    "autoprefixer": "7.1.6",
+    "autoprefixer": "10.4.5",
     "babel-core": "^6.26.0",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^23.6.0",
