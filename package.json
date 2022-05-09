@@ -153,7 +153,7 @@
     "optimize-css-assets-webpack-plugin": "^6.0.1",
     "plop": "^3.0.5",
     "react-intl-translations-manager": "^5.0.1",
-    "redux-test-utils": "^0.2.2",
+    "redux-test-utils": "^1.0.2",
     "sass-loader": "7.3.1",
     "style-loader": "0.23.0",
     "webpack-dev-server": "2.11.5",
