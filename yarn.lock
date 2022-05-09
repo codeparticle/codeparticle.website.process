@@ -4185,10 +4185,10 @@ copy-descriptor@^0.1.0:
   resolved "https://registry.yarnpkg.com/copy-descriptor/-/copy-descriptor-0.1.1.tgz#676f6eb3c39997c2ee1ac3a924fd6124748f578d"
   integrity sha1-Z29us8OZl8LuGsOpJP1hJHSPV40=
 
-copy-pkg-json-webpack-plugin@^0.0.38:
-  version "0.0.38"
-  resolved "https://registry.yarnpkg.com/copy-pkg-json-webpack-plugin/-/copy-pkg-json-webpack-plugin-0.0.38.tgz#8b43b113bf6ea81a30127f158f7c87e78624b765"
-  integrity sha512-zgmgia3gx/1z3TC8r8pIZ6Drp8TsDAEflK1yMpdPbkPe8Bw07HwlIi0+dnzy2xkIoRDGKtVQZ4SSq5+T5xyvvA==
+copy-pkg-json-webpack-plugin@^0.0.40:
+  version "0.0.40"
+  resolved "https://registry.yarnpkg.com/copy-pkg-json-webpack-plugin/-/copy-pkg-json-webpack-plugin-0.0.40.tgz#75919e4374c6ba48f4ba5f91326a60ef0f645414"
+  integrity sha512-Zl6PIZvE6RylFP0n65bq002W5lWziJ9xb5X9b7fIpeRdxTC3tQ5d7Tve+D18RuU67vfuBFKIbTl9E0iAx6J78w==
 
 core-js-compat@^3.21.0:
   version "3.22.2"
