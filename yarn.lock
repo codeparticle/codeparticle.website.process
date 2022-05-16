@@ -10394,12 +10394,12 @@ postcss-filter-plugins@^2.0.0:
   dependencies:
     postcss "^5.0.4"
 
-postcss-flexbugs-fixes@3.2.0:
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/postcss-flexbugs-fixes/-/postcss-flexbugs-fixes-3.2.0.tgz#9b8b932c53f9cf13ba0f61875303e447c33dcc51"
-  integrity sha512-0AuD9HG1Ey3/3nqPWu9yqf7rL0KCPu5VgjDsjf5mzEcuo9H/z8nco/fljKgjsOUrZypa95MI0kS4xBZeBzz2lw==
+postcss-flexbugs-fixes@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/postcss-flexbugs-fixes/-/postcss-flexbugs-fixes-5.0.1.tgz#8a4b84937e94e7c100e48e019eaad33850bc7b33"
+  integrity sha512-CBEfCMk5hcqGlgRb9SDzQ3bIExJlfz89heRsAYNuNRiCJOETlVOL1KfBV1AGKFww8olEpOOSAgGiWeaGTPCkeg==
   dependencies:
-    postcss "^6.0.1"
+    postcss "^8.1.4"
 
 postcss-load-config@^2.0.0:
   version "2.1.2"
@@ -10801,7 +10801,7 @@ postcss@^7.0.0, postcss@^7.0.32:
     picocolors "^0.2.1"
     source-map "^0.6.1"
 
-postcss@^8.2.1:
+postcss@^8.1.4, postcss@^8.2.1:
   version "8.4.13"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.4.13.tgz#7c87bc268e79f7f86524235821dfdf9f73e5d575"
   integrity sha512-jtL6eTBrza5MPzy8oJLFuUscHDXTV5KcLlqAWHl5q5WYRfnNRGSmOZmOZ1T6Gy7A99mOZfqungmZMpMmCVJ8ZA==
