@@ -30,7 +30,7 @@
     "babel-preset-react-app": "^10.0.1",
     "babel-runtime": "6.26.0",
     "case-sensitive-paths-webpack-plugin": "2.4.0",
-    "chalk": "5.1.2",
+    "chalk": "5.2.0",
     "classnames": "^2.2.6",
     "connected-react-router": "^4.3.0",
     "copy-pkg-json-webpack-plugin": "^0.0.40",
