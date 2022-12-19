@@ -148,7 +148,7 @@
     "eslint-plugin-jsx-a11y": "^6.1.2",
     "eslint-plugin-react": "^7.11.1",
     "eslint-plugin-redux-saga": "^0.9.0",
-    "husky": "^1.0.0-rc.13",
+    "husky": "^8.0.2",
     "jest": "^23.6.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
     "plop": "^2.1.0",
