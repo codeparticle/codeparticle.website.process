@@ -156,7 +156,7 @@
     "redux-test-utils": "^0.2.2",
     "sass-loader": "6.0.7",
     "style-loader": "0.23.1",
-    "webpack-dev-server": "2.11.5",
+    "webpack-dev-server": "4.15.1",
     "webpack-merge": "4.1.4"
   },
   "jest": {
