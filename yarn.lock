@@ -690,7 +690,7 @@ arraybuffer.prototype.slice@^1.0.1:
     is-array-buffer "^3.0.2"
     is-shared-array-buffer "^1.0.2"
 
-arrify@^1.0.0, arrify@^1.0.1:
+arrify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/arrify/-/arrify-1.0.1.tgz#898508da2226f380df904728456849c1501a4b0d"
   integrity sha1-iYUI2iIm84DfkEcoRWhJwVAaSw0=
@@ -3640,19 +3640,6 @@ defined@^1.0.0:
   resolved "https://registry.yarnpkg.com/defined/-/defined-1.0.0.tgz#c98d9bcef75674188e110969151199e39b1fa693"
   integrity sha1-yY2bzvdWdBiOEQlpFRGZ45sfppM=
 
-del@^2.2.2:
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/del/-/del-2.2.2.tgz#c12c981d067846c84bcaf862cff930d907ffd1a8"
-  integrity sha512-Z4fzpbIRjOu7lO5jCETSWoqUDVe0IPOlfugBsF6suen2LKDlVb4QZpKEM9P+buNJ4KI1eN7I083w/pbKUpsrWQ==
-  dependencies:
-    globby "^5.0.0"
-    is-path-cwd "^1.0.0"
-    is-path-in-cwd "^1.0.0"
-    object-assign "^4.0.1"
-    pify "^2.0.0"
-    pinkie-promise "^2.0.0"
-    rimraf "^2.2.8"
-
 del@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/del/-/del-3.0.0.tgz#53ecf699ffcbcb39637691ab13baf160819766e5"
@@ -5636,18 +5623,6 @@ globby@^10.0.1:
     ignore "^5.1.1"
     merge2 "^1.2.3"
     slash "^3.0.0"
-
-globby@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/globby/-/globby-5.0.0.tgz#ebd84667ca0dbb330b99bcfc68eac2bc54370e0d"
-  integrity sha512-HJRTIH2EeH44ka+LWig+EqT2ONSYpVlNfx6pyd592/VF1TbfljJ7elwie7oSwcViLGqOdWocSdu2txwBF9bjmQ==
-  dependencies:
-    array-union "^1.0.1"
-    arrify "^1.0.0"
-    glob "^7.0.3"
-    object-assign "^4.0.1"
-    pify "^2.0.0"
-    pinkie-promise "^2.0.0"
 
 globby@^6.1.0:
   version "6.1.0"
@@ -7821,7 +7796,7 @@ lodash.tail@^4.1.1:
   resolved "https://registry.yarnpkg.com/lodash.tail/-/lodash.tail-4.1.1.tgz#d2333a36d9e7717c8ad2f7cacafec7c32b444664"
   integrity sha512-+7y6zfkH4TqgS5DYKIqJuxmL5xT3WUUumVMZVRpDUo0UqJREwZqKmGo9wluj12FbPGl1UjRf2TnAImbw/bKtdw==
 
-lodash.template@^4.4.0:
+lodash.template@^4.4.0, lodash.template@^4.5.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/lodash.template/-/lodash.template-4.5.0.tgz#f976195cf3f347d0d5f52483569fe8031ccce8ab"
   integrity sha512-84vYFxIkmidUiFxidA/KjjH9pAycqW+h980j7Fuz5qxRtO9pgB7MDFTdys1N7A5mcucRiDyEq4fusljItR1T/A==
@@ -12001,16 +11976,17 @@ svgo@^1.0.0:
     unquote "~1.1.1"
     util.promisify "~1.0.0"
 
-sw-precache-webpack-plugin@0.11.4:
-  version "0.11.4"
-  resolved "https://registry.yarnpkg.com/sw-precache-webpack-plugin/-/sw-precache-webpack-plugin-0.11.4.tgz#a695017e54eed575551493a519dc1da8da2dc5e0"
-  integrity sha512-czvYwc8cy3K2F62PYuuja1p5NTqI3suFuUy8fDhcgS9cV5gO8jDlewQhhyUctcsA2T1Nb39W16nzSx8RwqkAvQ==
+sw-precache-webpack-plugin@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/sw-precache-webpack-plugin/-/sw-precache-webpack-plugin-1.0.0.tgz#57438e9a2a730fd9f9ff76b346196164c5dcd301"
+  integrity sha512-xXda8q9Nx1uCQ3m6TfPvw6X9OcTCnl6qB/afrUi+FF9CK7Lly29XHnvRrni0fzBU/1LKToHFDfi4jpLZuhL9JQ==
   dependencies:
-    del "^2.2.2"
-    sw-precache "^5.1.1"
-    uglify-js "^3.0.13"
+    del "^3.0.0"
+    lodash.template "^4.5.0"
+    sw-precache "^5.2.1"
+    uglify-es "^3.3.9"
 
-sw-precache@^5.1.1:
+sw-precache@^5.2.1:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/sw-precache/-/sw-precache-5.2.1.tgz#06134f319eec68f3b9583ce9a7036b1c119f7179"
   integrity sha512-8FAy+BP/FXE+ILfiVTt+GQJ6UEf4CVHD9OfhzH0JX+3zoy2uFk7Vn9EfXASOtVmmIVbL3jE/W8Z66VgPSZcMhw==
@@ -12374,7 +12350,7 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-uglify-es@^3.3.4:
+uglify-es@^3.3.4, uglify-es@^3.3.9:
   version "3.3.9"
   resolved "https://registry.yarnpkg.com/uglify-es/-/uglify-es-3.3.9.tgz#0c1c4f0700bed8dbc124cdb304d2592ca203e677"
   integrity sha512-r+MU0rfv4L/0eeW3xZrd16t4NZfK8Ld4SWVglYBb7ez5uXFWHuVRs6xCTrf1yirs9a4j4Y27nn7SRfO6v67XsQ==
@@ -12400,7 +12376,7 @@ uglify-js@^2.8.29:
   optionalDependencies:
     uglify-to-browserify "~1.0.0"
 
-uglify-js@^3.0.13, uglify-js@^3.1.4:
+uglify-js@^3.1.4:
   version "3.17.4"
   resolved "https://registry.yarnpkg.com/uglify-js/-/uglify-js-3.17.4.tgz#61678cf5fa3f5b7eb789bb345df29afb8257c22c"
   integrity sha512-T9q82TJI9e/C1TAxYvfb16xO120tMVFZrGA3f9/P4424DNu6ypK103y0GPFVa17yotwSyZW5iYXgjYHkGrJW/g==
