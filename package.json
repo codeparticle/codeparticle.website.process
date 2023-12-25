@@ -151,7 +151,7 @@
     "husky": "^1.0.0-rc.13",
     "jest": "^23.6.0",
     "optimize-css-assets-webpack-plugin": "^5.0.1",
-    "plop": "^2.1.0",
+    "plop": "^4.0.1",
     "react-intl-translations-manager": "^5.0.1",
     "redux-test-utils": "^0.2.2",
     "sass-loader": "6.0.7",
